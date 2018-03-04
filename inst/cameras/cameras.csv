@@ -1,0 +1,8 @@
+make,model,filetype,camera_name,sensor_width,sensor_height,sensor_type,shutter_type,img_width_def,img_height_def,focal_length_def,tag_yaw,tag_elev_agl,source,notes
+DJI,FC550,JPEG,DJI ZenMuse X5,17.3,13.125,CMOS,rolling,4608,3456,15.4755,CameraYaw,RelativeAltitude,https://www.dji.com/zenmuse-x5/info,
+DJI,FC350,JPEG,DJI ZenMuse X3,6.3175,4.73813,CMOS,rolling,4000,3000,3.61,CameraYaw,RelativeAltitude,https://www.dji.com/zenmuse-x3/info,
+DJI,FC300C,JPEG,DJI Phantom 3S,6.31748,4.73811,CMOS,rolling,4000,3000,3.61,CameraYaw,RelativeAltitude,https://www.dji.com/phantom-3-standard/camera,1/2.3 sensor
+Parrot,Sequoia,JPEG,Parrot Sequoia RGB,6.17472,4.63104,CMOS,rolling,4608,3456,4.88,Yaw,none,http://firmware.ardupilot.org/Tools/MissionPlanner/beta/upgrade/camerasBuiltin.xml,
+Parrot,Sequoia,TIFF,Parrot Sequoia mono,4.8,3.6,CMOS,rolling,1280,960,3.98,Yaw,none,http://firmware.ardupilot.org/Tools/MissionPlanner/beta/upgrade/camerasBuiltin.xml,
+GoPro,HERO4 Black,JPEG,Hero4 Black/Silver,6.2,4.65,CMOS,rolling,4000,3000,3,none,none,https://newatlas.com/gopro-hero4-vs-gopro-hero3plus/34090/,
+DJI,M100_X3,JPEG,DJI ZenMuse X3,6.3175,4.73813,CMOS,rolling,4000,3000,3.61,CameraYaw,RelativeAltitude,https://www.dji.com/zenmuse-x3/info,

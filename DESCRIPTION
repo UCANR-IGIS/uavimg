@@ -1,0 +1,21 @@
+Package: uavimg
+Type: Package
+Title: Map and analyze UAV image locations and footprints
+Description: Analyzes image files taken from a drone, computes their centroid, footprints, overlap, and GSD. Options to export image locations and footprints to Shapefile, and produce a summary report.
+Date: 2018-03-03
+Version: 0.5.0
+Authors@R: person("Andy", "Lyons", email = "andlyons@ucanr.edu", role = c("aut", "cre"))
+Maintainer: Andy Lyons <andlyons@ucanr.edu>
+BugReports: https://github.com/UCANR-IGIS/uavimg/issues
+License: file LICENSE 
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 3.0.0),
+    dplyr,
+    leaflet,
+    rgeos,
+    sp
+Suggests:
+    rgdal
+RoxygenNote: 6.0.1

@@ -1,0 +1,132 @@
+---
+title: "UAV Images Report"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document: 
+    self_contained: yes
+    smart: no
+    css: uavimg_report.css
+params:
+  pts: NA
+  fp: NA
+  img_dir: NA
+---
+
+```{r setup, include=FALSE}
+## Setup
+knitr::opts_chunk$set(echo = TRUE)
+
+## Import database of known sensors
+cameras_fn <- system.file("cameras/cameras.csv", package="uavimg")
+sensors_df <- read.csv(cameras_fn, stringsAsFactors = FALSE)
+
+## Search for this sensor
+camera_make <- params$pts@data[1, "make"]
+camera_model <- params$pts@data[1, "model"]
+camera_filetype <- params$pts@data[1, "filetype"]
+
+sensor_this_df <- dplyr::filter(sensors_df, model==camera_model & filetype==camera_filetype)
+
+## Get the composite camera name from the sensor database
+if (nrow(sensor_this_df)==0) {
+  camera_name <- "unknown"
+} else {
+  camera_name <- sensor_this_df[1, "camera_name"]
+}
+
+## Get the image dimensions
+img_pixels <- paste0(params$pts@data[1, "img_width"], " x ", params$pts@data[1, "img_height"])
+
+## Get the start and end time formmated
+dt_posix <- as.POSIXct(params$pts@data$date_time, format="%Y:%m:%d %H:%M:%S")
+dt_range <- format(range(dt_posix), "%b. %d %Y, %I:%M:%S %p")
+
+##2017:12:10 12:53:28
+
+```
+
+## Images
+
+<table>
+<tr><td>__Directory__:</td><td>`r params$img_dir`</td></tr>
+<tr><td>__Num images__:</td><td>`r nrow(params$pts)`</td></tr>
+<tr><td>__Start__:</td><td>`r dt_range[1]`</td></tr>
+<tr><td>__End__:</td><td>`r dt_range[2]`</td></tr>
+<tr><td>__Camera__:</td><td>`r camera_name`</td></tr>
+<tr><td>__Image size__:</td><td>`r img_pixels`</td></tr>
+</table>
+
+
+## Maps {.tabset}
+
+### Centers
+
+```{r leaflet_ctr, echo=FALSE, message=FALSE}
+## Initiate a new leaflet object
+m <- leaflet(width="800px", height="600px")
+
+## Add tiles properties
+tilesURL = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+tilesAttr = "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+m <- m %>% addTiles(tilesURL, attribution=tilesAttr)
+
+## Set the bounding box
+lng_rng <- range(params$pts@data$gps_long)
+lat_rng <- range(params$pts@data$gps_lat)
+m_pts <- m %>% fitBounds(lng_rng[1], lat_rng[1], lng_rng[2], lat_rng[2])
+
+#fillColor <- "yellow"
+fillColor <- rainbow(nrow(params$pts@data), end=5/6)
+
+## Add markers
+m_pts <- m_pts %>% addCircleMarkers(lng=params$pts@data$gps_long, lat=params$pts@data$gps_lat, radius=3, stroke=FALSE, fillColor=fillColor, fillOpacity=1)
+
+## Display HTML Widget
+m_pts
+```
+
+### Footprints
+
+```{r leaflet_fp, echo=FALSE, message=FALSE}
+
+## Reproject footprints to lat-long (required by leaflet)
+crsLatLong <- CRS("+proj=longlat +datum=WGS84")
+fpLL <- spTransform(geometry(params$fp), crsLatLong)
+
+## Set the bounding box
+fpBBox <- bbox(fpLL)
+m_fp <- m %>% fitBounds(fpBBox[1,1], fpBBox[2,1], fpBBox[1,2], fpBBox[2,2])
+
+#outline_color <- c("yellow", "LightPink")[1]
+outline_color <- rainbow(length(fpLL), end=5/6)
+
+## Add polygons
+m_fp <- m_fp %>% addPolygons(data=fpLL, fill=FALSE, stroke=TRUE, color=outline_color, weight=2, dashArray="1,2")
+
+## Display HTML Widget
+m_fp
+```
+
+## EXIF Data Analysis
+
+```{r echo=FALSE}
+hist(cm2in(params$pts@data$gsd), col="grey50", breaks=20, main="Ground Sampling Distance", xlab="estimated GSD (inches)", ylab="freq")
+```
+
+```{r echo=FALSE}
+hist(m2ft(params$pts@data$alt_agl), col="grey50", breaks=20, main=" Altitude", xlab="recorded altitude above launch (ft)", ylab="freq")
+```
+
+```{r echo=FALSE}
+hist(params$fp@data$fwd_ovrlap, col="grey50", breaks=20, main="Forward Overlap", xlab="estimated overlap (%)", ylab="freq")
+```
+
+
+## Coming soon
+
+ * Image thumbnails
+ * Horizonal speed at time of acquisition
+ 
+ 
+ 
+

@@ -1,0 +1,11 @@
+Changes in version 0.5.0 (2018-03-03) 
+=========================
+* Renamed package 'uavimg' 
+* Added utility functions <pre>cm2in</pre>, <pre>m2ft</pre>
+* Renamed function <pre>img_uav_map</pre> to <pre>uavimg_map/pre>
+* Added function <pre>uavimg_report</pre>
+
+Version 0.3.0 (2018-01-23) 
+=========================
+* Initial release
+
