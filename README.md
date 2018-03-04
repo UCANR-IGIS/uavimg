@@ -43,8 +43,7 @@ If you get an error message about dependent packages not being available, see th
 
 The package requires *dplyr*, *sp*, *rgeos*, and *leaflet*. To save image locations and footprints to shapefiles, you also need *rgdal*. (Mac users beware: *rgeos* and *rgdal* can be a pain to install on MacOS!)
 
-If you get an error message when installing `droneimg`,  install the dependent packages separately (i.e., from the 'Packages' pane in RStudio), then run 'install_github("ucanr-igis/uavimg", **dependencies=FALSE**)'. 
-
+If you get an error message when installing `uavimg`,  install the dependent packages separately (i.e., from the 'Packages' pane in RStudio), then run 'install_github("ucanr-igis/uavimg", **dependencies=FALSE**)'. 
 
 ### Exiftool
 
