@@ -68,7 +68,7 @@ To map the images in a directory, pass the directory to *map_uav_imgs()* (which 
 
 	> flt01 <- uavimg_info("./flights/flt01")
 
-The  map_uav_imgs() function returns a named list with two elements. The first element (*pts*) is a SpatialPointsDataFrame of the image centroids. The second (*fp*) is a SpatialPolygonsDataFrame of the image footprints.
+The  uavimg_info() function returns a named list with three elements. The first element (*pts*) is a SpatialPointsDataFrame of the image centroids. The second (*fp*) is a SpatialPolygonsDataFrame of the image footprints. The third (*img_dir*) stores the path to the directory where the images are saved.
 
 To see the fields (columns) in the attribute table:
 
@@ -80,6 +80,7 @@ To plot the points:
 	> num_pts <- nrow(flt01$pts@data)
 	> plot(flt01$pts, axes=TRUE, asp=1, pch=16, col=rainbow(num_pts, end=5/6))
 
-For more code examples, see https://cdn.rawgit.com/UCANR-IGIS/droneimg/4bf05592/demo/DroneImg_Demo.html 
+For more code examples, see https://cdn.rawgit.com/UCANR-IGIS/uavimg/34bd4b13/demo/uavimg_demo.html
+
 
 
