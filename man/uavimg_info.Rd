@@ -5,8 +5,7 @@
 \title{Extract info from UAV Images}
 \usage{
 uavimg_info(img_dir, exiftool = NULL, csv = NULL, alt_agl = NULL,
-  fwd_overlap = TRUE, shp_save = FALSE, shp_dir = img_dir,
-  shp_name = c("img_ctr", "img_fp"), quiet = FALSE)
+  fwd_overlap = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{img_dir}{A directory where the image files reside}
@@ -18,12 +17,6 @@ uavimg_info(img_dir, exiftool = NULL, csv = NULL, alt_agl = NULL,
 \item{alt_agl}{The elevation above ground level in meters (optional for images with the relevative altitude saved)}
 
 \item{fwd_overlap}{Whether or not to compute the amount of overlap between one image and the next, T/F}
-
-\item{shp_save}{Save the image centroids and footprints as Shapefiles, T/F}
-
-\item{shp_dir}{The directory where the Shapefiles should be saved}
-
-\item{shp_name}{A character vector of the filename(s) of the image centroid and footprint Shapefiles to be saved, see Details}
 
 \item{quiet}{Don't show messages}
 }
@@ -41,8 +34,6 @@ requires that the camera parameters are known, and the flight elevation about gr
 This function uses a free command line tool called EXIFtool to read the EXIF data, which can be downloaded
 from \url{http://www.sno.phy.queensu.ca/~phil/exiftool/}.  After you download it, rename the executable file,
 'exiftool(-k).exe' to 'exiftool.exe', and save it somewhere on your system's PATH (e.g., c:\\Windows).
-
-If \code{shp_save=TRUE}, the centroids and footprints will be exported as Shapefiles (this can also be done using the object returned by the function). If a vector of length two is passed (e.g., \code{c(T,F)}), the first and second values will determine whether to export the centroids and footprints respectively. Exporting objects to Shapefile requires the \code{rgdal} package to be installed. You can specify which directory the Shapefiles will be exported to using the \code{shp_dir} argument. The default is to save them in the same directory as the images. \code{shp_name} can be used to pass the names of the Shapefile filenames (minus the extension) for the centroids and footprints (must pass both even if you are not saving both). If \code{shp_name="dir"}, the name of directory in which the images are saved will be used as the base of the Shapefile filenames.
 }
 \seealso{
 \link{uavimg_report}

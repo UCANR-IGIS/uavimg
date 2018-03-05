@@ -1,3 +1,8 @@
+Changes in version 0.6.0 (2018-03-03) 
+=========================
+* Removed shp_save, shp_dir, and shp_name arguments from <pre>uavimg_info</pre>
+* Added function <pre>uavimg_exp</pre>
+
 Changes in version 0.5.0 (2018-03-03) 
 =========================
 * Renamed package 'uavimg' 

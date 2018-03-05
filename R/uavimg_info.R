@@ -7,9 +7,6 @@
 #' @param csv The file name of a new csv file where the exif data will be saved (omit to make a temp one)
 #' @param alt_agl The elevation above ground level in meters (optional for images with the relevative altitude saved)
 #' @param fwd_overlap Whether or not to compute the amount of overlap between one image and the next, T/F
-#' @param shp_save Save the image centroids and footprints as Shapefiles, T/F
-#' @param shp_dir The directory where the Shapefiles should be saved
-#' @param shp_name A character vector of the filename(s) of the image centroid and footprint Shapefiles to be saved, see Details
 #' @param quiet Don't show messages
 #'
 #' @details
@@ -21,39 +18,18 @@
 #' from \url{http://www.sno.phy.queensu.ca/~phil/exiftool/}.  After you download it, rename the executable file,
 #' 'exiftool(-k).exe' to 'exiftool.exe', and save it somewhere on your system's PATH (e.g., c:\\Windows).
 #'
-#' If \code{shp_save=TRUE}, the centroids and footprints will be exported as Shapefiles (this can also be done using the object returned by the function). If a vector of length two is passed (e.g., \code{c(T,F)}), the first and second values will determine whether to export the centroids and footprints respectively. Exporting objects to Shapefile requires the \code{rgdal} package to be installed. You can specify which directory the Shapefiles will be exported to using the \code{shp_dir} argument. The default is to save them in the same directory as the images. \code{shp_name} can be used to pass the names of the Shapefile filenames (minus the extension) for the centroids and footprints (must pass both even if you are not saving both). If \code{shp_name="dir"}, the name of directory in which the images are saved will be used as the base of the Shapefile filenames.
-#'
 #' @return A named list with three elements: 1) SpatialPointsDataFrame with the image centroids, and 2) a SpatialPolygonsDataFrame of the image footprints, and 3) the image directory. An HTML report of the images can be created with \link{uavimg_report}.
 #'
 #' @seealso \link{uavimg_report}
 #'
 #' @export
 
-uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_overlap=TRUE, shp_save=FALSE, shp_dir=img_dir, shp_name=c("img_ctr", "img_fp"), quiet=FALSE) {
+uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_overlap=TRUE, quiet=FALSE) {
 
   if (!file.exists(img_dir)) stop(paste0("Can't find ", img_dir))
-  if (length(shp_save)==1) shp_save <- rep(shp_save, 2)
-  if (shp_save[1] || shp_save[2]) {
-    if (!file.exists(shp_dir)) stop(paste0("Can't find ", shp_dir))
-    if (identical(shp_name, "dir")) {
-      img_dir_pieces <- unlist(strsplit(path.expand(img_dir), .Platform$file.sep))
-      shp_name[1] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_ctr")
-      shp_name[2] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_fp")
-    }
-    if (length(shp_name) != 2) stop("shp_name should be a character vector of length 2 containing the Shapefile filenames of the centers and footprint respectively (minus the extension)")
-    for (i in 1:2) {
-      ## Strip off the extension if needed
-      if (toupper(substr(shp_name[i],nchar(shp_name[i])-3,nchar(shp_name[i])))==".SHP")
-        shp_name[i] <- substr(shp_name[i], 0, nchar(shp_name[i]) - 4)
-    }
-  }
 
   cameras_fn <- system.file("cameras/cameras.csv", package="uavimg")
   if (!file.exists(cameras_fn)) stop(paste0("Can't find cameras.csv file: ", cameras_fn))
-
-  if (shp_save[1] || shp_save[2]) {
-    if(!require(rgdal)) stop("rgdal package is required to save shapefiles. Install rgdal or use shp_save=FALSE.")
-  }
 
   ## See if exiftool is installed
   if (is.null(exiftool)) {
@@ -153,8 +129,7 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
   }
 
   # Import EXIF CSV
-  #if (!quiet) cat("Reading", csv_fn, "\n")
-  exif_df <- utils::read.csv(csv_fn, stringsAsFactors=FALSE)
+  exif_df <- read.csv(csv_fn, stringsAsFactors=FALSE)
   if (is.null(csv)) file.remove(csv_fn)
   names(exif_df) <- tolower(names(exif_df))
 
@@ -194,83 +169,7 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
   exif_df <- dplyr::mutate(exif_df, gsd=eval(gsd_exprsn))
   exif_df <- dplyr::mutate(exif_df, foot_w=(gsd*imagewidth)/100, foot_h=(gsd*imageheight)/100)
 
-  ## CREATE SPATIAL OBJECTS
-
-  ## Create a SpatialPoints object for the image centroids
-  imgs_ctr_ll <- sp::SpatialPointsDataFrame(coords=exif_df[,c("gpslongitude","gpslatitude")],
-                                        data=exif_df, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
-
-  ## Convert to UTM
-  utm_zone <- floor((exif_df[1,"gpslongitude"] + 180) / 6) + 1
-  utm_ns <- if (exif_df[1,"gpslatitude"]>0) " +north" else " +south"
-  utm_CRS <- sp::CRS(paste("+proj=utm +zone=", utm_zone, utm_ns, " +ellps=WGS84", sep=""))
-  imgs_ctr_utm <- sp::spTransform(imgs_ctr_ll, utm_CRS)
-
-  ## Loop through the image centroids, and create a footprint rectangle
-  ## For those where alt_agl > 0
-
-  if (!quiet) cat("Creating footprints...")
-  corners_sign_mat <- matrix(data=c(-1,1,1,1,1,-1,-1,-1,-1,1), byrow=TRUE, ncol=2, nrow=5)
-  ctr_utm <- sp::coordinates(imgs_ctr_utm)
-  polys_lst <- list()
-  valid_idx <- NULL
-
-  for (i in 1:nrow(imgs_ctr_utm@data)) {
-    dx <- imgs_ctr_utm@data[i, "foot_w"]
-    dy <- imgs_ctr_utm@data[i, "foot_h"]
-
-    if (dx>0 && dy>0) {
-
-      ## Compute the nodes of the corners (centered around 0,0)
-      corners_mat <- corners_sign_mat * matrix(data=c(dx/2, dy/2), byrow=TRUE, ncol=2, nrow=5)
-
-      # Convert the gimbal yaw degree to radians, the rotate the rectangle to
-      # align with the gimbal direction
-      # DJI Gimbal directions
-      #   0  = north (no rotation needed)
-      #   90 = east (rotate 90 degrees clockwise)
-      #  -90 = west (rotate 90 degress counter-clockwise)
-      # -179, + 179 = south (rotate 180 degrees)
-
-      # if camera_tag_yaw != "none"
-      # check if the Sequoia Yaw has the same alignment
-      theta = -1 * pi * imgs_ctr_utm@data[i,tolower(camera_tag_yaw)] / 180
-      rot_mat <- matrix(data=c(cos(theta),  -sin(theta), sin(theta), cos(theta)), nrow=2, byrow=TRUE)
-      corners_mat <- t(rot_mat %*% t(corners_mat))
-
-      #plot(corners_mat, type="b", col="blue", axes=TRUE, xlim=c(-30,30), ylim=c(-30,30), asp=1)
-      #points(corners_zero, type="b", col="red")
-
-      ## Add the coordinates of the image detroid
-      img_ctr_mat <- matrix(ctr_utm[i,], byrow=TRUE, ncol=2, nrow=5)
-      nodes <- img_ctr_mat + corners_mat
-
-      ## Create the Polygon and Polygons objects. Append these to the master list.
-      Sr1 = sp::Polygon(nodes)
-      Srs1 = sp::Polygons(list(Sr1), sprintf("%04d", i))
-      polys_lst <- append(polys_lst, Srs1)
-      valid_idx <- c(valid_idx, i)
-    }
-  }
-
-  ## Create the SpatialPolygons object, then the SpatialPolygonsDataFrame object
-  footprints_sp <- sp::SpatialPolygons(polys_lst, pO=1:length(polys_lst), proj4string=utm_CRS)
-  footprints_spdf <- sp::SpatialPolygonsDataFrame(footprints_sp, data=imgs_ctr_utm@data[valid_idx,-1], match.ID = FALSE)
-  if (!quiet) cat("Done.\n")
-
-  ## Compute the forward overlap
-  if (fwd_overlap) {
-    if (!quiet) cat("Computing forward overlap...")
-    footprints_spdf@data$fwd_overlap <- NA
-    for (i in 1:(nrow(footprints_spdf)-1)) {
-      intersect_prop <- rgeos::gArea(rgeos::gIntersection(footprints_spdf[i,], footprints_spdf[i+1,])) /
-        rgeos::gArea(footprints_spdf[i,])
-      footprints_spdf@data[i, "fwd_overlap"] <- intersect_prop
-    }
-    if (!quiet) cat("Done.\n")
-  }
-
-  ## Shorten field names
+  ## Create a list that we'll use later to shorten field names
   short_names <- list()
   short_names[["sourcefile"]] <- "img_fn"
   short_names[["filename"]] <- "file_name"
@@ -294,31 +193,101 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
   short_names[["foot_h"]] <- "fp_height"
   short_names[["fwd_overlap"]] <- "fwd_ovrlap"
 
-  for (i in 1:length(footprints_spdf@data)) {
-    fldname <- names(footprints_spdf@data)[i]
-    if (fldname %in% names(short_names)) {
-      #cat("Going to shorten field", fldname, "\n")
-      names(footprints_spdf@data)[i] <- short_names[[fldname]]
+  ## CREATE SPATIAL OBJECTS
+
+  ## Create a SpatialPoints object for the image centroids
+  imgs_ctr_ll <- sp::SpatialPointsDataFrame(coords=exif_df[,c("gpslongitude","gpslatitude")],
+                                        data=exif_df, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
+
+  ## Convert to UTM
+  utm_zone <- floor((exif_df[1,"gpslongitude"] + 180) / 6) + 1
+  utm_ns <- if (exif_df[1,"gpslatitude"]>0) " +north" else " +south"
+  utm_CRS <- sp::CRS(paste("+proj=utm +zone=", utm_zone, utm_ns, " +ellps=WGS84", sep=""))
+  imgs_ctr_utm <- sp::spTransform(imgs_ctr_ll, utm_CRS)
+
+  ## Loop through the image centroids, and create a footprint rectangle
+  ## For those where alt_agl > 0
+
+  if (camera_tag_yaw == "none") {
+    footprints_spdf <- NULL
+    if (!quiet) cat("Skipping footprints (no yaw tag in EXIF)\n")
+  } else {
+    if (!quiet) cat("Creating footprints...")
+    corners_sign_mat <- matrix(data=c(-1,1,1,1,1,-1,-1,-1,-1,1), byrow=TRUE, ncol=2, nrow=5)
+    ctr_utm <- sp::coordinates(imgs_ctr_utm)
+    polys_lst <- list()
+    valid_idx <- NULL
+  
+    for (i in 1:nrow(imgs_ctr_utm@data)) {
+      dx <- imgs_ctr_utm@data[i, "foot_w"]
+      dy <- imgs_ctr_utm@data[i, "foot_h"]
+  
+      if (dx>0 && dy>0) {
+  
+        ## Compute the nodes of the corners (centered around 0,0)
+        corners_mat <- corners_sign_mat * matrix(data=c(dx/2, dy/2), byrow=TRUE, ncol=2, nrow=5)
+  
+        # Convert the gimbal yaw degree to radians, the rotate the rectangle to
+        # align with the gimbal direction
+        # DJI Gimbal directions
+        #   0  = north (no rotation needed)
+        #   90 = east (rotate 90 degrees clockwise)
+        #  -90 = west (rotate 90 degress counter-clockwise)
+        # -179, + 179 = south (rotate 180 degrees)
+  
+        # 
+        # check if the Sequoia Yaw has the same alignment
+        theta = -1 * pi * imgs_ctr_utm@data[i,tolower(camera_tag_yaw)] / 180
+        rot_mat <- matrix(data=c(cos(theta),  -sin(theta), sin(theta), cos(theta)), nrow=2, byrow=TRUE)
+        corners_mat <- t(rot_mat %*% t(corners_mat))
+  
+        #plot(corners_mat, type="b", col="blue", axes=TRUE, xlim=c(-30,30), ylim=c(-30,30), asp=1)
+        #points(corners_zero, type="b", col="red")
+  
+        ## Add the coordinates of the image detroid
+        img_ctr_mat <- matrix(ctr_utm[i,], byrow=TRUE, ncol=2, nrow=5)
+        nodes <- img_ctr_mat + corners_mat
+  
+        ## Create the Polygon and Polygons objects. Append these to the master list.
+        Sr1 = sp::Polygon(nodes)
+        Srs1 = sp::Polygons(list(Sr1), sprintf("%04d", i))
+        polys_lst <- append(polys_lst, Srs1)
+        valid_idx <- c(valid_idx, i)
+      }
+    }
+  
+    ## Create the SpatialPolygons object, then the SpatialPolygonsDataFrame object
+    footprints_sp <- sp::SpatialPolygons(polys_lst, pO=1:length(polys_lst), proj4string=utm_CRS)
+    footprints_spdf <- sp::SpatialPolygonsDataFrame(footprints_sp, data=imgs_ctr_utm@data[valid_idx,-1], match.ID = FALSE)
+    if (!quiet) cat("Done.\n")
+  
+    ## Compute the forward overlap
+    if (fwd_overlap) {
+      if (!quiet) cat("Computing forward overlap...")
+      footprints_spdf@data$fwd_overlap <- NA
+      for (i in 1:(nrow(footprints_spdf)-1)) {
+        intersect_prop <- rgeos::gArea(rgeos::gIntersection(footprints_spdf[i,], footprints_spdf[i+1,])) /
+          rgeos::gArea(footprints_spdf[i,])
+        footprints_spdf@data[i, "fwd_overlap"] <- intersect_prop
+      }
+      if (!quiet) cat("Done.\n")
+    }
+
+    ## Shorten field names in footprints_spdf
+    for (i in 1:length(footprints_spdf@data)) {
+      fldname <- names(footprints_spdf@data)[i]
+      if (fldname %in% names(short_names)) {
+        names(footprints_spdf@data)[i] <- short_names[[fldname]]
+      }
     }
   }
-
+  
+  ## Shorten field names in imgs_ctr_utm
   for (i in 1:length(imgs_ctr_utm@data)) {
     fldname <- names(imgs_ctr_utm@data)[i]
     if (fldname %in% names(short_names)) {
       names(imgs_ctr_utm@data)[i] <- short_names[[fldname]]
     }
-  }
-
-  if (!quiet && (shp_save[1] || shp_save[2])) cat("Saving Shapefiles to", path.expand(shp_dir), "\n")
-
-  if (shp_save[1]) {
-    rgdal::writeOGR(imgs_ctr_utm, dsn=path.expand(shp_dir), layer=shp_name[1], driver="ESRI Shapefile", overwrite_layer=TRUE)
-    if (!quiet) cat(" - ", shp_name[1], ".shp\n", sep="")
-  }
-
-  if (shp_save[2]) {
-    rgdal::writeOGR(footprints_spdf, dsn=path.expand(shp_dir), layer=shp_name[2], driver="ESRI Shapefile", overwrite_layer=TRUE)
-    if (!quiet) cat(" - ", shp_name[2], ".shp\n", sep="")
   }
 
   if (!quiet) cat("All done.\n")

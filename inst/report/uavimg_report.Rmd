@@ -39,7 +39,7 @@ img_pixels <- paste0(params$pts@data[1, "img_width"], " x ", params$pts@data[1, 
 
 ## Get the start and end time formmated
 dt_posix <- as.POSIXct(params$pts@data$date_time, format="%Y:%m:%d %H:%M:%S")
-dt_range <- format(range(dt_posix), "%b. %d %Y, %I:%M:%S %p")
+dt_range <- format(range(dt_posix), "%b %d %Y, %I:%M:%S %p")
 
 ##2017:12:10 12:53:28
 
@@ -89,22 +89,26 @@ m_pts
 
 ```{r leaflet_fp, echo=FALSE, message=FALSE}
 
-## Reproject footprints to lat-long (required by leaflet)
-crsLatLong <- CRS("+proj=longlat +datum=WGS84")
-fpLL <- spTransform(geometry(params$fp), crsLatLong)
-
-## Set the bounding box
-fpBBox <- bbox(fpLL)
-m_fp <- m %>% fitBounds(fpBBox[1,1], fpBBox[2,1], fpBBox[1,2], fpBBox[2,2])
-
-#outline_color <- c("yellow", "LightPink")[1]
-outline_color <- rainbow(length(fpLL), end=5/6)
-
-## Add polygons
-m_fp <- m_fp %>% addPolygons(data=fpLL, fill=FALSE, stroke=TRUE, color=outline_color, weight=2, dashArray="1,2")
-
-## Display HTML Widget
-m_fp
+if (is.null(params$fp)) {
+  htmltools::p("Image footprints not computed! (perhaps because yaw data was not saved in the EXIF)")
+} else {  
+  ## Reproject footprints to lat-long (required by leaflet)
+  crsLatLong <- CRS("+proj=longlat +datum=WGS84")
+  fpLL <- spTransform(geometry(params$fp), crsLatLong)
+  
+  ## Set the bounding box
+  fpBBox <- bbox(fpLL)
+  m_fp <- m %>% fitBounds(fpBBox[1,1], fpBBox[2,1], fpBBox[1,2], fpBBox[2,2])
+  
+  #outline_color <- c("yellow", "LightPink")[1]
+  outline_color <- rainbow(length(fpLL), end=5/6)
+  
+  ## Add polygons
+  m_fp <- m_fp %>% addPolygons(data=fpLL, fill=FALSE, stroke=TRUE, color=outline_color, weight=2, dashArray="1,2")
+  
+  ## Display HTML Widget
+  m_fp
+}
 ```
 
 ## EXIF Data Analysis
@@ -114,17 +118,22 @@ hist(cm2in(params$pts@data$gsd), col="grey50", breaks=20, main="Ground Sampling 
 ```
 
 ```{r echo=FALSE}
-hist(m2ft(params$pts@data$alt_agl), col="grey50", breaks=20, main=" Altitude", xlab="recorded altitude above launch (ft)", ylab="freq")
+if ("alt_agl" %in% names(params$pts@data)) {
+  hist(m2ft(params$pts@data$alt_agl), col="grey50", breaks=20, main=" Altitude", xlab="recorded altitude above launch (ft)", ylab="freq")
+}
 ```
 
 ```{r echo=FALSE}
-hist(params$fp@data$fwd_ovrlap, col="grey50", breaks=20, main="Forward Overlap", xlab="estimated overlap (%)", ylab="freq")
+if (!is.null(params$fp)) {
+  hist(params$fp@data$fwd_ovrlap, col="grey50", breaks=20, main="Forward Overlap", xlab="estimated overlap (%)", ylab="freq")
+}
 ```
 
 
 ## Coming soon
 
- * Image thumbnails
+ * image thumbnails
+ * acres
  * Horizonal speed at time of acquisition
  
  
