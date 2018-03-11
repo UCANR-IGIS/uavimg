@@ -1,3 +1,8 @@
+Changes in version 0.6.1 (2018-03-10) 
+=========================
+* Modified <pre>uavimg_info</pre> to trap an error when percent forward overlap=0
+* Added a <pre>col</pre> argument to <pre>uavimg_report</pre> 
+
 Changes in version 0.6.0 (2018-03-03) 
 =========================
 * Removed shp_save, shp_dir, and shp_name arguments from <pre>uavimg_info</pre>

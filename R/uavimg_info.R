@@ -266,8 +266,13 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
       if (!quiet) cat("Computing forward overlap...")
       footprints_spdf@data$fwd_overlap <- NA
       for (i in 1:(nrow(footprints_spdf)-1)) {
-        intersect_prop <- rgeos::gArea(rgeos::gIntersection(footprints_spdf[i,], footprints_spdf[i+1,])) /
-          rgeos::gArea(footprints_spdf[i,])
+        intersect_sp <- rgeos::gIntersection(footprints_spdf[i,], footprints_spdf[i+1,])
+        if (is.null(intersect_sp)) {  
+          ## No intersection at all
+          intersect_prop <- 0
+        } else {
+          intersect_prop <- rgeos::gArea(intersect_sp) / rgeos::gArea(footprints_spdf[i,])  
+        }
         footprints_spdf@data[i, "fwd_overlap"] <- intersect_prop
       }
       if (!quiet) cat("Done.\n")

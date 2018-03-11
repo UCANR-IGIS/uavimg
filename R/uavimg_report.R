@@ -3,13 +3,14 @@
 #' Creates a report of UAV images
 #'
 #' @param x A list of class 'uavimg_info'
+#' @param col Color value(s) of the centroids and/or footprints
 #' @param output_file	If NULL then a default based on the name of the input file is chosen.
 #' @param output_dir If NULL, then will be placed in a 'map' sub-directory of the images
 #' @param create_dir Create the output directory if it doesn't exist
 #' @param report_rmd RMarkdown filename for the report
 #' @param open_report Open the HTML file in a browser
 #' @param self_contained Make the output HTML file self-contained
-#' @param quiet TRUE to supress printing of the pandoc command line.
+#' @param quiet TRUE to supress printing of the pandoc command line
 #'
 #' @details
 #'
@@ -19,7 +20,7 @@
 #'
 #' @export
 
-uavimg_report <- function(x, output_file=NULL, output_dir=NULL, create_dir=TRUE, report_rmd=NULL, open_report=TRUE, self_contained=TRUE, quiet=FALSE) {
+uavimg_report <- function(x, col=NULL, output_file=NULL, output_dir=NULL, create_dir=TRUE, report_rmd=NULL, open_report=TRUE, self_contained=TRUE, quiet=FALSE) {
 
     if (!inherits(x, "uavimg_info")) stop("x should be of class \"uavimg_info\"")
 
@@ -44,20 +45,11 @@ uavimg_report <- function(x, output_file=NULL, output_dir=NULL, create_dir=TRUE,
       output_file <- paste0(basename(x$img_dir), "_report.html")
     }
 
-    #cat("Rmd file will be:", report_rmd, "\n")
-    #cat("Output file will be: ", file.path(output_dir, output_file), "\n")
-    
-    ## Currently, only self-contained files are supported. To use an external css file,
-    ## and/or lib_dir file, I would need to manually copy the css file to the output dir,
-    ## as well as the lib_dir directory. The render() fucntion creates the lib_dir directory
-    ## relative to the Rmd file (which is this case is in the R Library folder. 
-    ## A workaround could be to render the HTML file in a temporary folder, and then
-    ## copy it to the output directory
-    ## Another workaround would be to copy the Rmd and CSS file to the output directory,
-    ## render the HTML, then delete the Rmd file
-  
-    # rmd_html <- rmarkdown::html_document(self_contained = TRUE)
-    # output_options <- list(self_contained=FALSE, lib_dir="libs")
+    ## In order to create HTML output which is *not* self-contained, we must
+    ## manually copy the css file to the output dir. We must also
+    ## temporarily copy the RMd file to the output dir, because knitr
+    ## creates the lib_dir relative to the location of the Rmd file (with no
+    ## other arguments or options)
   
     if (self_contained) {
       output_options <- list()
@@ -73,6 +65,10 @@ uavimg_report <- function(x, output_file=NULL, output_dir=NULL, create_dir=TRUE,
       ## Create a list of output options that specify not self contained
       output_options <- list(self_contained=FALSE, lib_dir="libs")
     }
+  
+    ## Add 'col' to the uavimg_info object (within the function environment only)
+    if (is.null(col)) col <- rainbow(nrow(x$pts@data), end=5/6)
+    x[["col"]] <- col
     
     report_fn <- rmarkdown::render(input=report_rmd, output_dir=output_dir, output_file=output_file, output_options=output_options, params=x)
 
@@ -82,6 +78,7 @@ uavimg_report <- function(x, output_file=NULL, output_dir=NULL, create_dir=TRUE,
     ## Open the file
     if (open_report) browseURL(report_fn)
     
+    ## Return the filename of the HTML file (invisibly)
     return(invisible(report_fn))
 }
 

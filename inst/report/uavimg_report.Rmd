@@ -10,6 +10,7 @@ params:
   pts: NA
   fp: NA
   img_dir: NA
+  col: "yellow"
 ---
 
 ```{r setup, include=FALSE}
@@ -76,10 +77,10 @@ lat_rng <- range(params$pts@data$gps_lat)
 m_pts <- m %>% fitBounds(lng_rng[1], lat_rng[1], lng_rng[2], lat_rng[2])
 
 #fillColor <- "yellow"
-fillColor <- rainbow(nrow(params$pts@data), end=5/6)
+#fillColor <- rainbow(nrow(params$pts@data), end=5/6)
 
 ## Add markers
-m_pts <- m_pts %>% addCircleMarkers(lng=params$pts@data$gps_long, lat=params$pts@data$gps_lat, radius=3, stroke=FALSE, fillColor=fillColor, fillOpacity=1)
+m_pts <- m_pts %>% addCircleMarkers(lng=params$pts@data$gps_long, lat=params$pts@data$gps_lat, radius=3, stroke=FALSE, fillColor=params$col, fillOpacity=1)
 
 ## Display HTML Widget
 m_pts
@@ -101,10 +102,10 @@ if (is.null(params$fp)) {
   m_fp <- m %>% fitBounds(fpBBox[1,1], fpBBox[2,1], fpBBox[1,2], fpBBox[2,2])
   
   #outline_color <- c("yellow", "LightPink")[1]
-  outline_color <- rainbow(length(fpLL), end=5/6)
+  #outline_color <- rainbow(length(fpLL), end=5/6)
   
   ## Add polygons
-  m_fp <- m_fp %>% addPolygons(data=fpLL, fill=FALSE, stroke=TRUE, color=outline_color, weight=2, dashArray="1,2")
+  m_fp <- m_fp %>% addPolygons(data=fpLL, fill=FALSE, stroke=TRUE, color=params$col, weight=2, dashArray="1,2")
   
   ## Display HTML Widget
   m_fp
@@ -133,8 +134,9 @@ if (!is.null(params$fp)) {
 ## Coming soon
 
  * image thumbnails
- * acres
+ * total acres covered
  * Horizonal speed at time of acquisition
+ * centroids and footprints combined in one map
  
  
  

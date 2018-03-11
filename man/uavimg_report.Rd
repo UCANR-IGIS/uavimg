@@ -4,12 +4,14 @@
 \alias{uavimg_report}
 \title{Create report of UAV Images}
 \usage{
-uavimg_report(x, output_file = NULL, output_dir = NULL, create_dir = TRUE,
-  report_rmd = NULL, open_report = TRUE, self_contained = TRUE,
-  quiet = FALSE)
+uavimg_report(x, col = NULL, output_file = NULL, output_dir = NULL,
+  create_dir = TRUE, report_rmd = NULL, open_report = TRUE,
+  self_contained = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{x}{A list of class 'uavimg_info'}
+
+\item{col}{Color value(s) of the centroids and/or footprints}
 
 \item{output_file}{If NULL then a default based on the name of the input file is chosen.}
 
@@ -23,7 +25,7 @@ uavimg_report(x, output_file = NULL, output_dir = NULL, create_dir = TRUE,
 
 \item{self_contained}{Make the output HTML file self-contained}
 
-\item{quiet}{TRUE to supress printing of the pandoc command line.}
+\item{quiet}{TRUE to supress printing of the pandoc command line}
 }
 \value{
 The filename of the HTML report generated
