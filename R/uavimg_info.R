@@ -200,9 +200,10 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
                                         data=exif_df, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
 
   ## Convert to UTM
-  utm_zone <- floor((exif_df[1,"gpslongitude"] + 180) / 6) + 1
-  utm_ns <- if (exif_df[1,"gpslatitude"]>0) " +north" else " +south"
-  utm_CRS <- sp::CRS(paste("+proj=utm +zone=", utm_zone, utm_ns, " +ellps=WGS84", sep=""))
+  #utm_zone <- floor((exif_df[1,"gpslongitude"] + 180) / 6) + 1
+  #utm_ns <- if (exif_df[1,"gpslatitude"]>0) " +north" else " +south"
+  #utm_CRS <- sp::CRS(paste("+proj=utm +zone=", utm_zone, utm_ns, " +ellps=WGS84", sep=""))
+  utm_CRS <- geo2utm(exif_df[1,"gpslongitude"], exif_df[1,"gpslatitude"])
   imgs_ctr_utm <- sp::spTransform(imgs_ctr_ll, utm_CRS)
 
   ## Loop through the image centroids, and create a footprint rectangle

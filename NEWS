@@ -1,3 +1,10 @@
+Changes in version 0.6.2 (2018-04-xx) 
+=========================
+* Added MicaSense RedEdge to <em>cameras.csv</em>
+* Added function <pre>geo2utm</pre>
+* Modified function <pre>uavimg_info</pre>
+
+
 Changes in version 0.6.1 (2018-03-10) 
 =========================
 * Modified <pre>uavimg_info</pre> to trap an error when percent forward overlap=0
