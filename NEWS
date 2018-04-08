@@ -1,9 +1,15 @@
-Changes in version 0.6.2 (2018-04-xx) 
+Changes in version 0.6.3 (2018-04-06) 
+=========================
+* Added function <pre>msq2acres</pre>
+* Modified function <pre>uavimg_info</pre>: improved error messages if no jpg or tif files found, computed AOI area 
+* Modified <pre>uavimg_report.Rmd</pre>: adeded area 
+* Modified function <pre>uavimg_report</pre>: added <pre>png_map</pre> argument
+
+Changes in version 0.6.2 (2018-04-02) 
 =========================
 * Added MicaSense RedEdge to <em>cameras.csv</em>
 * Added function <pre>geo2utm</pre>
 * Modified function <pre>uavimg_info</pre>
-
 
 Changes in version 0.6.1 (2018-03-10) 
 =========================

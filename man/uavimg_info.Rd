@@ -27,14 +27,14 @@ A named list with three elements: 1) SpatialPointsDataFrame with the image centr
 Extracts info from geotagged images taken from a drone
 }
 \details{
-This will read the EXIF header data from a directory of image files, and plot the centroids and image footprints on the
-ground. Mapping the image locations requires that the images have geostamps. In addition, mapping the image footprints
-requires that the camera parameters are known, and the flight elevation about ground level is either saved in the EXIF info, or provided in the \code{alt_agl} argument. If \code{alt_agl} is passed, it will override any elevation data in the EXIF info.
+This will read the EXIF header data from a directory of image files, and put out the centroids and image footprints on the ground. Mapping  image locations requires that the images have geostamps. In addition, mapping the image footprints requires that the camera parameters are known, and the flight elevation about ground level is either saved in the EXIF info, or provided in the \code{alt_agl} argument (in meters). If \code{alt_agl} is passed, it will override any elevation data in the EXIF info.
+
+Camera parameters are saved in a csv file called cameras.csv. To see where this is saved, type \link{system.file("cameras/cameras.csv", package="uavimg")}. If your camera is not detected, please contact the package author or create an issue on \href{https://github.com/UCANR-IGIS/uavimg/issues}{GitHub}. 
 
 This function uses a free command line tool called EXIFtool to read the EXIF data, which can be downloaded
 from \url{http://www.sno.phy.queensu.ca/~phil/exiftool/}.  After you download it, rename the executable file,
 'exiftool(-k).exe' to 'exiftool.exe', and save it somewhere on your system's PATH (e.g., c:\\Windows).
 }
 \seealso{
-\link{uavimg_report}
+\link{uavimg_report}, \link{uavimg_exp}
 }

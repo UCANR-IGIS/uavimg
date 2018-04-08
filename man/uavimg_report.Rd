@@ -4,26 +4,30 @@
 \alias{uavimg_report}
 \title{Create report of UAV Images}
 \usage{
-uavimg_report(x, col = NULL, output_file = NULL, output_dir = NULL,
-  create_dir = TRUE, report_rmd = NULL, open_report = TRUE,
-  self_contained = TRUE, quiet = FALSE)
+uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
+  output_file = NULL, report_rmd = NULL, open_report = TRUE,
+  self_contained = TRUE, png_map = TRUE, png_exp = 0.2, quiet = FALSE)
 }
 \arguments{
 \item{x}{A list of class 'uavimg_info'}
 
 \item{col}{Color value(s) of the centroids and/or footprints}
 
-\item{output_file}{If NULL then a default based on the name of the input file is chosen.}
-
 \item{output_dir}{If NULL, then will be placed in a 'map' sub-directory of the images}
 
 \item{create_dir}{Create the output directory if it doesn't exist}
+
+\item{output_file}{Name of the HTML file. If NULL a default based on the name of the input directory is chosen.}
 
 \item{report_rmd}{RMarkdown filename for the report}
 
 \item{open_report}{Open the HTML file in a browser}
 
 \item{self_contained}{Make the output HTML file self-contained}
+
+\item{png_map}{Whether to create a PNG version of the map. May be T/F, or dimensions of the output image in pixels (see Details)}
+
+\item{png_exp}{A proportion to expand the bounding box of the PNG map, see Details.}
 
 \item{quiet}{TRUE to supress printing of the pandoc command line}
 }
@@ -34,7 +38,12 @@ The filename of the HTML report generated
 Creates a report of UAV images
 }
 \details{
+This will generate a HTML report of the images in the UAV metadata object based. 
 
+If no value for \code{output_dir} is passed, the report will be saved in a sub-directory of the image directory 
+called 'map'. This sub-directory will be created if \code{create_dir = TRUE}.
+
+\code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixel. \code{png_exp} is a percentage of that the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it.
 }
 \seealso{
 \link{uavimg_info}

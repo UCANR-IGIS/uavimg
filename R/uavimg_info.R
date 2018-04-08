@@ -10,9 +10,9 @@
 #' @param quiet Don't show messages
 #'
 #' @details
-#' This will read the EXIF header data from a directory of image files, and plot the centroids and image footprints on the
-#' ground. Mapping the image locations requires that the images have geostamps. In addition, mapping the image footprints
-#' requires that the camera parameters are known, and the flight elevation about ground level is either saved in the EXIF info, or provided in the \code{alt_agl} argument. If \code{alt_agl} is passed, it will override any elevation data in the EXIF info.
+#' This will read the EXIF header data from a directory of image files, and put out the centroids and image footprints on the ground. Mapping  image locations requires that the images have geostamps. In addition, mapping the image footprints requires that the camera parameters are known, and the flight elevation about ground level is either saved in the EXIF info, or provided in the \code{alt_agl} argument (in meters). If \code{alt_agl} is passed, it will override any elevation data in the EXIF info.
+#'
+#' Camera parameters are saved in a csv file called cameras.csv. To see where this is saved, type \link{system.file("cameras/cameras.csv", package="uavimg")}. If your camera is not detected, please contact the package author or create an issue on \href{https://github.com/UCANR-IGIS/uavimg/issues}{GitHub}. 
 #'
 #' This function uses a free command line tool called EXIFtool to read the EXIF data, which can be downloaded
 #' from \url{http://www.sno.phy.queensu.ca/~phil/exiftool/}.  After you download it, rename the executable file,
@@ -20,7 +20,7 @@
 #'
 #' @return A named list with three elements: 1) SpatialPointsDataFrame with the image centroids, and 2) a SpatialPolygonsDataFrame of the image footprints, and 3) the image directory. An HTML report of the images can be created with \link{uavimg_report}.
 #'
-#' @seealso \link{uavimg_report}
+#' @seealso \link{uavimg_report}, \link{uavimg_exp}
 #'
 #' @export
 
@@ -50,15 +50,14 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
   if (!quiet) cat("Looking for image files in", img_dir, "\n")
 
   first_fn <- list.files(path=img_dir, full.names=TRUE, pattern="jpg$|JPG$|tif$|TIF$")[1]
-  if (length(first_fn) == 0) stop("Couldn't find any jpg or tif files")
+  if (is.na(first_fn)) stop(paste0("Couldn't find any jpg or tif files in ", img_dir))
 
-  csv_first_fn <- tempfile(pattern="map_uav_", fileext = ".csv")
+  csv_first_fn <- tempfile(pattern="~map_uav_", fileext = ".csv")
   system2("exiftool", args=paste("-Make -Model -FileType -n -csv", first_fn, sep=" "), stdout=csv_first_fn)
   exif_first_df <- read.csv(csv_first_fn, stringsAsFactors = FALSE)
   file.remove(csv_first_fn)
-
   if (nrow(exif_first_df) == 0) stop("Couldn't find EXIF info in the first image file")
-
+  
   camera_make <- exif_first_df[1, "Make"]
   camera_model <- exif_first_df[1, "Model"]
   camera_filetype <- exif_first_df[1, "FileType"]
@@ -200,24 +199,26 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
                                         data=exif_df, proj4string = sp::CRS("+proj=longlat +datum=WGS84"))
 
   ## Convert to UTM
-  #utm_zone <- floor((exif_df[1,"gpslongitude"] + 180) / 6) + 1
-  #utm_ns <- if (exif_df[1,"gpslatitude"]>0) " +north" else " +south"
-  #utm_CRS <- sp::CRS(paste("+proj=utm +zone=", utm_zone, utm_ns, " +ellps=WGS84", sep=""))
   utm_CRS <- geo2utm(exif_df[1,"gpslongitude"], exif_df[1,"gpslatitude"])
   imgs_ctr_utm <- sp::spTransform(imgs_ctr_ll, utm_CRS)
 
-  ## Loop through the image centroids, and create a footprint rectangle
-  ## For those where alt_agl > 0
-
+  ## Compute footprints
+  
   if (camera_tag_yaw == "none") {
     footprints_spdf <- NULL
     if (!quiet) cat("Skipping footprints (no yaw tag in EXIF)\n")
+    nodes_all_mat <- coordinates(imgs_ctr_utm)
+    
   } else {
+    ## Loop through the image centroids, and create a footprint rectangle
+    ## For those where alt_agl > 0
+    
     if (!quiet) cat("Creating footprints...")
     corners_sign_mat <- matrix(data=c(-1,1,1,1,1,-1,-1,-1,-1,1), byrow=TRUE, ncol=2, nrow=5)
     ctr_utm <- sp::coordinates(imgs_ctr_utm)
     polys_lst <- list()
     valid_idx <- NULL
+    nodes_all_mat <- matrix(ncol=2, nrow=0)
   
     for (i in 1:nrow(imgs_ctr_utm@data)) {
       dx <- imgs_ctr_utm@data[i, "foot_w"]
@@ -248,6 +249,9 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
         ## Add the coordinates of the image detroid
         img_ctr_mat <- matrix(ctr_utm[i,], byrow=TRUE, ncol=2, nrow=5)
         nodes <- img_ctr_mat + corners_mat
+        
+        ## Add the nodes to the master matrix (for the purposes of computing the overall area)
+        nodes_all_mat <- rbind(nodes_all_mat, nodes[1:4,])
   
         ## Create the Polygon and Polygons objects. Append these to the master list.
         Sr1 = sp::Polygon(nodes)
@@ -261,7 +265,7 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
     footprints_sp <- sp::SpatialPolygons(polys_lst, pO=1:length(polys_lst), proj4string=utm_CRS)
     footprints_spdf <- sp::SpatialPolygonsDataFrame(footprints_sp, data=imgs_ctr_utm@data[valid_idx,-1], match.ID = FALSE)
     if (!quiet) cat("Done.\n")
-  
+
     ## Compute the forward overlap
     if (fwd_overlap) {
       if (!quiet) cat("Computing forward overlap...")
@@ -288,6 +292,20 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
     }
   }
   
+  
+  ## Compute area based on the convex hull around all the corners of all the footprints
+  chull_idx <- chull(nodes_all_mat)
+  chull_idx <- c(chull_idx, chull_idx[1])
+  Sr2 = sp::Polygon(nodes_all_mat[chull_idx,])
+  area_m2 = Sr2@area
+  
+  ## Checks (work)
+  ## Srs2 = sp::Polygons(list(Sr2), "mcp")
+  ## fpmcp_sp <- sp::SpatialPolygons(list(Srs2), proj4string=utm_CRS)
+  ## plot(footprints_sp, axes=T, asp=1)
+  ## plot(fpmcp_sp, add=TRUE, border="blue", lwd=2)
+  
+  
   ## Shorten field names in imgs_ctr_utm
   for (i in 1:length(imgs_ctr_utm@data)) {
     fldname <- names(imgs_ctr_utm@data)[i]
@@ -296,9 +314,10 @@ uavimg_info <- function(img_dir, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_over
     }
   }
 
+
   if (!quiet) cat("All done.\n")
 
-  res <- list(pts=imgs_ctr_utm,fp=footprints_spdf, img_dir=img_dir)
+  res <- list(pts=imgs_ctr_utm,fp=footprints_spdf, img_dir=img_dir, area_m2=area_m2)
   class(res) <- c("list", "uavimg_info")
   return(res)
 
