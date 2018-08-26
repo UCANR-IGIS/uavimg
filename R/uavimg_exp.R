@@ -18,54 +18,63 @@
 #'
 #' @export
 
-uavimg_exp <- function(x, shp_save=TRUE, shp_dir=NULL, shp_name=c("img_pts", "img_fp"), create_dir=TRUE, quiet=FALSE) {
+uavimg_exp <- function(x, shp_save=TRUE, shp_dir=NULL, shp_name="dir", create_dir=TRUE, quiet=FALSE) {
 
     if (!inherits(x, "uavimg_info")) stop("x should be of class \"uavimg_info\"")
-    if (length(shp_save)==1) shp_save <- rep(shp_save, 2)
-    if (is.null(x$fp)) shp_save[2] <- FALSE
-    
     if (shp_save[1] || shp_save[2]) {
-      if(!require(rgdal)) stop("rgdal package is required to save shapefiles. Install rgdal or use shp_save=FALSE.")
-    
-      ## Get the output dir
-      if (is.null(shp_dir)) {
-        shp_dir <- file.path(x$img_dir, "map")
-        if (!file.exists(shp_dir) && create_dir) {
-          cat("Creating", shp_dir, "\n")
-          dir.create(shp_dir)
-        }
-      } 
-      if (!file.exists(shp_dir)) stop(paste0("Can't find ", shp_dir))
-
-      ## Get the Shapefile names
-      if (identical(shp_name, "dir")) {
-        img_dir_pieces <- unlist(strsplit(path.expand(x$img_dir), .Platform$file.sep))
-        shp_name[1] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_pts")
-        shp_name[2] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_fp")
-      }
-      if (length(shp_name) != 2) stop("shp_name should be a character vector of length 2 containing the Shapefile filenames of the centers and footprint respectively (minus the extension)")
-
-      for (i in 1:2) {
-        ## Strip off the extension if needed
-        if (toupper(substr(shp_name[i],nchar(shp_name[i])-3,nchar(shp_name[i])))==".SHP")
-          shp_name[i] <- substr(shp_name[i], 0, nchar(shp_name[i]) - 4)
-      }
+        if(!require(rgdal)) stop("rgdal package is required to save shapefiles. Install rgdal or use shp_save=FALSE.")
     }
-
-
-    if (!quiet && (shp_save[1] || shp_save[2])) cat("Saving Shapefiles to", path.expand(shp_dir), "\n")
+    if (length(shp_save)==1) shp_save <- rep(shp_save, 2)
     files_saved <- NULL
-    
-    if (shp_save[1]) {
-      rgdal::writeOGR(x$pts, dsn=path.expand(shp_dir), layer=shp_name[1], driver="ESRI Shapefile", overwrite_layer=TRUE)
-      if (!quiet) cat(" - ", shp_name[1], ".shp\n", sep="")
-      files_saved <- c(files_saved, file.path(shp_dir, shp_name[1]))
-    }
+    shp_name_use <- shp_name
+
+    for (img_dir in names(x)) {   
+      if (shp_save[1] || shp_save[2]) {
+      
+        ## Get the output dir
+        if (is.null(shp_dir)) {
+          shp_dir_use <- file.path(img_dir, "map")
+          if (!file.exists(shp_dir_use) && create_dir) {
+            cat("Creating", shp_dir_use, "\n")
+            dir.create(shp_dir_use)
+          }
+        } else {
+          shp_dir_use <- shp_dir
+        }
+        if (!file.exists(shp_dir_use)) stop(paste0("Can't find ", shp_dir_use))
   
-    if (shp_save[2]) {
-      rgdal::writeOGR(x$fp, dsn=path.expand(shp_dir), layer=shp_name[2], driver="ESRI Shapefile", overwrite_layer=TRUE)
-      if (!quiet) cat(" - ", shp_name[2], ".shp\n", sep="")
-      files_saved <- c(files_saved, file.path(shp_dir, shp_name[2]))
+        ## Get the Shapefile names
+        if (identical(shp_name, "dir")) {
+          img_dir_pieces <- unlist(strsplit(path.expand(img_dir), .Platform$file.sep))
+          shp_name_use[1] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_pts")
+          shp_name_use[2] <- paste0(img_dir_pieces[length(img_dir_pieces)], "_fp")
+        }
+        if (length(shp_name_use) != 2) stop("shp_name should be 'dir', OR a character vector of length 2 containing the Shapefile filenames (minus the shp extension) of the centers and footprint respectively")
+  
+        for (i in 1:2) {
+          ## Strip off the extension if needed
+          if (toupper(substr(shp_name_use[i],nchar(shp_name_use[i])-3,nchar(shp_name_use[i])))==".SHP")
+            shp_name_use[i] <- substr(shp_name_use[i], 0, nchar(shp_name_use[i]) - 4)
+        }
+      }
+
+      ## Present a message
+      if (!quiet && (shp_save[1] || shp_save[2])) cat("Saving Shapefiles to", path.expand(shp_dir_use), "\n")
+      
+      ## Export centroids      
+      if (shp_save[1]) {
+        rgdal::writeOGR(x[[img_dir]]$pts, dsn=path.expand(shp_dir_use), layer=shp_name_use[1], driver="ESRI Shapefile", overwrite_layer=TRUE)
+        if (!quiet) cat(" - ", shp_name_use[1], ".shp\n", sep="")
+        files_saved <- c(files_saved, file.path(shp_dir_use, shp_name_use[1]))
+      }
+    
+      ## Export footprints
+      if (shp_save[2] && !is.null(x[[img_dir]]$fp)) {
+        rgdal::writeOGR(x[[img_dir]]$fp, dsn=path.expand(shp_dir_use), layer=shp_name_use[2], driver="ESRI Shapefile", overwrite_layer=TRUE)
+        if (!quiet) cat(" - ", shp_name_use[2], ".shp\n", sep="")
+        files_saved <- c(files_saved, file.path(shp_dir_use, shp_name_use[2]))
+      }
+    
     }
     
     cat("Done\n")

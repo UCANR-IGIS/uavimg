@@ -1,9 +1,9 @@
-Drone Image Mapping
+UAV Images Utils
 ----------
 
-This R package will map and analyze a set of images taken from a drone. It does not stitch the images, but rather reads the EXIF data in the image files in order to map the image centroids and estimate the footprint of each image on the ground, the ground sampling distance (pixel size), and the amount of overlap between images. Image centroids and footprints can also be saved as Shapefiles.
+This R package helps manage images taken from a UAV (drone). More specifically, it helps manage images that have been taken with the intent to stitch them together. The package does not stitch images, but helps you organize your data by moving images from different flights into their own subdirectories, estimating the GSD (pixel size) and image footprints on the ground, computing estimated overlap, generating HTML reports for each flight, and exporting image locations and footprints to Shapefiles that you can import into a GIS. 
 
-##### Use Cases
+##### Applications
 
 This package was built with two-use cases in mind:
 
@@ -12,7 +12,7 @@ This package was built with two-use cases in mind:
 
 ##### Data Requirements
 
-The package gets the image location data from the geostamps saved in the image files themselves. This will only work if the camera on the drone saved the GPS coordinates in the image files. To compute  footprints, the package also needs to know the height at which images were taken. Some drones (including many DJI drones) save the relative flight altitude (above the launch point) in the image file. Flight height can also be entered manually as an argument.
+The package uses image location data saved in the EXIF data (header) of image files themselves. This will only work if the camera on the drone saved the GPS coordinates in the image files. To compute  footprints, the package also needs to know the height at which images were taken. Some drones (including many DJI drones) save the relative flight altitude (above the launch point) in the image file. Flight height can also be entered manually as an argument.
 
 Requirements for using the package include:
 
@@ -22,9 +22,9 @@ Requirements for using the package include:
  - the height above ground level must be saved in the image files, or passed as an argument. If passed as an argument, the assumption is that all images were taken from the same height.
  - images were taken at nadir (camera pointing straight down)
 
-##### Accuracy of the Estimated Image Footprints
+##### Accuracy of the Estimated GSD and Image Footprints
 
-The computed image footprints and GSD are based on height above ground level. If the study area was flat and the flight lines were all at the same elevation, using the RelativeAltitude from the image headers or passing the flight height as an argument should be relatively accurate. In hilly areas or uneven flights, image footprints and GSD will both be under-estimated (i.e., smaller than reality) whereever the distance between the drone and the ground was actually greater than the flight height. 
+The computed image footprints and GSD are based on the recorded height above ground level (usually taken to be the launch point). If the study area was flat and the flight lines were all at the same elevation, using the RelativeAltitude from the image headers, or passing the flight height as an argument, should be relatively accurate. In hilly areas or uneven flights, image footprints and GSD will be under-estimated (i.e., smaller than reality) whereever the distance between the drone and the ground was actually greater than the recorded flight height. 
 
 For more information, please contact andlyons@ucanr.edu.
 
@@ -57,29 +57,11 @@ To read the EXIF data from the image files, the package requires a free command 
 Usage
 ---------
 
-To see a list of known cameras:
+To see a list of known cameras (sensors), run
 
 	> cameras()
 
 If your camera is not listed, see the help page for the cameras() function, or contact the package author.
 
-To map the images in a directory, pass the directory to *map_uav_imgs()* (which is the main function in the package):
-
-	> flt01 <- uavimg_info("./flights/flt01")
-
-The  uavimg_info() function returns a named list with three elements. The first element (*pts*) is a SpatialPointsDataFrame of the image centroids. The second (*fp*) is a SpatialPolygonsDataFrame of the image footprints. The third (*img_dir*) stores the path to the directory where the images are saved.
-
-To see the fields (columns) in the attribute table:
-
-	> names(flt01$pts@data)
-	> names(flt01$fp@data)
-
-To plot the points:
-
-	> num_pts <- nrow(flt01$pts@data)
-	> plot(flt01$pts, axes=TRUE, asp=1, pch=16, col=rainbow(num_pts, end=5/6))
-
-For more code examples, see https://cdn.rawgit.com/UCANR-IGIS/uavimg/34bd4b13/demo/uavimg_demo.html
-
-
+The general usage is to first create a metadata object for one or more directories of images, using the uavimg_info() function. If needed, you can then split (move) the images into separate folders for each flight using the uavimg_move() function. Once you have the images from each flight saved in their own folder, you can create HTML report(s) of each flight using the uavimg_report() function, or export image centroids and footprints to Shapefiles using uavimg_exp().
 

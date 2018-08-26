@@ -1,4 +1,4 @@
-#' Look up  TM zone
+#' Look up UTM zone
 #'
 #' Finds the UTM zone for a geographic coordinate
 #'

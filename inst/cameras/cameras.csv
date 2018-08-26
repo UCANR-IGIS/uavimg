@@ -7,4 +7,6 @@ Parrot,Sequoia,TIFF,Parrot Sequoia MS,4.74,3.6,CMOS,global,1280,960,3.98,Yaw,non
 GoPro,HERO4 Black,JPEG,Hero4 Black/Silver,6.2,4.65,CMOS,rolling,4000,3000,3,none,none,https://newatlas.com/gopro-hero4-vs-gopro-hero3plus/34090/,
 DJI,M100_X3,JPEG,DJI ZenMuse X3,6.3175,4.73813,CMOS,rolling,4000,3000,3.61,CameraYaw,RelativeAltitude,https://www.dji.com/zenmuse-x3/info,
 MicaSense,RedEdge,TIFF,MicaSense RedEdge,4.8,3.6,CMOS,global,1280,960,5.5,none,none,https://support.micasense.com/hc/en-us/articles/225933127-RedEdge-Manual-Overview-and-Table-of-Contents,
-DJI,FLIR,TIFF,DJI Zenmuse XT,9.00,6.80,CMOS,unknown,640,512,13,GimbalYawDegree,RelativeAltitude,https://www.dji.com/zenmuse-xt/info,
+DJI,FLIR,TIFF,DJI Zenmuse XT,9,6.8,CMOS,unknown,640,512,13,GimbalYawDegree,RelativeAltitude,https://www.dji.com/zenmuse-xt/info,
+DJI,FC6310,JPEG,DJI Phantom 4 Pro,13.20,8.80,CMOS,global,5472,3648,8.8,CameraYaw,RelativeAltitude,https://www.dji.com/phantom-4-pro/info; https://www.dxomark.com/Cameras/DJI/Phantom4-Pro,1 inch CMOS
+DJI,xxxxxx,JPEG,DJI Phantom 4,6.3,4.7,CMOS,unknown,4000,3000,20,CameraYaw,RelativeAltitude,https://www.dxomark.com/Cameras/DJI/Phantom-4 ; https://www.dji.com/phantom-4/info,1/2.3 CMOS

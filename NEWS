@@ -1,3 +1,12 @@
+Changes in version 0.9.0 (2018-08-26) 
+=========================
+* Relatively major update - modified the structure of class uavimg_info to support multiple directories
+* Modified function <pre>uavimg_info</pre>, <pre>uavimg_report</pre>, <pre>uavimg_exp</pre>
+
+Changes in version 0.6.4 (2018-06-28) 
+=========================
+* Updated cameras.csv
+
 Changes in version 0.6.3 (2018-04-06) 
 =========================
 * Added function <pre>msq2acres</pre>

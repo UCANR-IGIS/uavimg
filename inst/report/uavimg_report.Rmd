@@ -137,9 +137,4 @@ if (!is.null(params$fp)) {
 ```
 
 
-## Coming soon
-
- * image thumbnails
- * Horizonal speed at time of acquisition
- * centroids and footprints combined in one map
- 
+*Created with the [UAV Images Utils](https://github.com/UCANR-IGIS/uavimg) R package* 
