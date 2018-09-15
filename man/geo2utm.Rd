@@ -2,7 +2,7 @@
 % Please edit documentation in R/geo2utm.R
 \name{geo2utm}
 \alias{geo2utm}
-\title{Look up  TM zone}
+\title{Look up UTM zone}
 \usage{
 geo2utm(x, lat = NULL)
 }

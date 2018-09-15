@@ -2,11 +2,12 @@
 % Please edit documentation in R/uavimg_report.R
 \name{uavimg_report}
 \alias{uavimg_report}
-\title{Create report of UAV Images}
+\title{Create report(s) of UAV Images}
 \usage{
 uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
   output_file = NULL, report_rmd = NULL, open_report = TRUE,
-  self_contained = TRUE, png_map = TRUE, png_exp = 0.2, quiet = FALSE)
+  self_contained = TRUE, png_map = TRUE, png_exp = 0.2,
+  quiet = FALSE)
 }
 \arguments{
 \item{x}{A list of class 'uavimg_info'}
@@ -19,8 +20,6 @@ uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
 
 \item{output_file}{Name of the HTML file. If NULL a default based on the name of the input directory is chosen.}
 
-\item{report_rmd}{RMarkdown filename for the report}
-
 \item{open_report}{Open the HTML file in a browser}
 
 \item{self_contained}{Make the output HTML file self-contained}
@@ -30,20 +29,29 @@ uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
 \item{png_exp}{A proportion to expand the bounding box of the PNG map, see Details.}
 
 \item{quiet}{TRUE to supress printing of the pandoc command line}
+
+\item{RMarkdown}{filename for the report}
 }
 \value{
 The filename of the HTML report generated
 }
 \description{
-Creates a report of UAV images
+Creates HTML report(s) of a directory of UAV images
 }
 \details{
-This will generate a HTML report of the images in the UAV metadata object based. 
+This will generate HTML report(s) of the images in the UAV metadata object based. 
 
 If no value for \code{output_dir} is passed, the report will be saved in a sub-directory of the image directory 
 called 'map'. This sub-directory will be created if \code{create_dir = TRUE}.
 
-\code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixel. \code{png_exp} is a percentage of that the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it.
+\code{self_contained} determines whether the HTML file(s) created will have all the JavaScript and CSS files
+embedded in the HTML file itself, or saved in a subdirectory called 'libs'. If saving several reports to one output directory,
+If saving multiple HTML reports to the same output directory, passing \code{self_contained = FALSE} is more efficient   
+
+The HTML report is generated from a RMarkdown file. If you know RMarkdown, you can modify the default template and pass the filename
+of your preferred template using the \code{report_rmd} argument. 
+
+\code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it.
 }
 \seealso{
 \link{uavimg_info}

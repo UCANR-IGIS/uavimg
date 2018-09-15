@@ -47,7 +47,7 @@ dt_range <- format(range(dt_posix), "%b %d %Y, %I:%M:%S %p")
 
 ```
 
-## Images
+## `r basename(params$img_dir)`
 
 <table>
 <tr><td>__Directory__:</td><td>`r params$img_dir`</td></tr>
@@ -136,5 +136,4 @@ if (!is.null(params$fp)) {
 }
 ```
 
-
-*Created with the [UAV Images Utils](https://github.com/UCANR-IGIS/uavimg) R package* 
+<hr/><p style="text-align:center; color:#556B2F;"><em>Created with <a href="https://github.com/UCANR-IGIS/uavimg" target="_blank">Drone Image Utils</a> for R</em><br/></p>

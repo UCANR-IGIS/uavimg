@@ -4,11 +4,11 @@
 \alias{uavimg_info}
 \title{Extract info from UAV Images}
 \usage{
-uavimg_info(img_dir, exiftool = NULL, csv = NULL, alt_agl = NULL,
+uavimg_info(img_dirs, exiftool = NULL, csv = NULL, alt_agl = NULL,
   fwd_overlap = TRUE, quiet = FALSE)
 }
 \arguments{
-\item{img_dir}{A directory where the image files reside}
+\item{img_dirs}{Directory(s) where the image files reside}
 
 \item{exiftool}{The path to the exiftool command line tool (omit if on the OS path)}
 

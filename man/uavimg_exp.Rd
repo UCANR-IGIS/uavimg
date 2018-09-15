@@ -4,8 +4,8 @@
 \alias{uavimg_exp}
 \title{Export map files from UAV images}
 \usage{
-uavimg_exp(x, shp_save = TRUE, shp_dir = NULL, shp_name = c("img_pts",
-  "img_fp"), create_dir = TRUE, quiet = FALSE)
+uavimg_exp(x, shp_save = TRUE, shp_dir = NULL, shp_name = "dir",
+  create_dir = TRUE, quiet = FALSE)
 }
 \arguments{
 \item{x}{A list of class 'uavimg_info'}

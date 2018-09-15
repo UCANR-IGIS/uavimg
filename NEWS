@@ -1,3 +1,7 @@
+Changes in version 0.9.1 (2018-09-14) 
+=========================
+* Added custom summary function for drone images metadata collection object, <pre>summary.uavimg_info</pre> 
+
 Changes in version 0.9.0 (2018-08-26) 
 =========================
 * Relatively major update - modified the structure of class uavimg_info to support multiple directories

@@ -1,14 +1,15 @@
-UAV Images Utils
+Drone Image Utilities
 ----------
 
-This R package helps manage images taken from a UAV (drone). More specifically, it helps manage images that have been taken with the intent to stitch them together. The package does not stitch images, but helps you organize your data by moving images from different flights into their own subdirectories, estimating the GSD (pixel size) and image footprints on the ground, computing estimated overlap, generating HTML reports for each flight, and exporting image locations and footprints to Shapefiles that you can import into a GIS. 
+This R package helps manage images taken from a UAV (drone). More specifically, it helps manage images that have been taken with the intent to stitch them together. The package does not stitch images, but helps you organize your data and double-check the quality. Using nothing but the image files themselves, the package will estimate the acquired GSD (pixel size) and footprint on the ground, compute estimated overlap, generate a HTML reports for each flight that includes an interactive map, and export image locations and footprints to Shapefiles that you can import into a GIS. 
 
 ##### Applications
 
-This package was built with two-use cases in mind:
+This package was built with three specific applications in mind:
 
 1. Doing a quick check in the field to review the distribution of a set of images, and the estimated image overlap. This (along with checking the images for bluriness) can help a pilot determine if a flight was successful or needs to be redone.
-1. Subsetting images for further analysis with a photogrammetry (stitching) program like Pix4D. Omitting  images with an extreme amount of overlap can improve results and reduce processing time.
+1. Subsetting images for further processing with a photogrammetry (stitching) program like Pix4D or Agisoft. Omitting  images with an extreme amount of overlap can improve results and reduce processing time.
+1. Creating HTML reports for individual flights, to serve as the pages for a catalog of drone images.
 
 ##### Data Requirements
 
@@ -26,8 +27,6 @@ Requirements for using the package include:
 
 The computed image footprints and GSD are based on the recorded height above ground level (usually taken to be the launch point). If the study area was flat and the flight lines were all at the same elevation, using the RelativeAltitude from the image headers, or passing the flight height as an argument, should be relatively accurate. In hilly areas or uneven flights, image footprints and GSD will be under-estimated (i.e., smaller than reality) whereever the distance between the drone and the ground was actually greater than the recorded flight height. 
 
-For more information, please contact andlyons@ucanr.edu.
-
 Installation
 ---------
 
@@ -41,9 +40,9 @@ If you get an error message about dependent packages not being available, see th
 
 ### Dependencies
 
-The package requires *dplyr*, *sp*, *rgeos*, and *leaflet*. To save image locations and footprints to shapefiles, you also need *rgdal*. (Mac users beware: *rgeos* and *rgdal* can be a pain to install on MacOS!)
+The package requires the *dplyr*, *sp*, *rgeos*, and *leaflet* packages. To save image locations and footprints to shapefiles, you also need *rgdal*. (Mac users beware: *rgeos* and *rgdal* can be a pain to install on MacOS!)
 
-If you get an error message when installing `uavimg`,  install the dependent packages separately (i.e., from the 'Packages' pane in RStudio), then run 'install_github("ucanr-igis/uavimg", **dependencies=FALSE**)'. 
+If you get an error message when installing *uavimg*,  install the dependent packages separately (i.e., from the 'Packages' pane in RStudio). Then run `install_github("ucanr-igis/uavimg", dependencies=FALSE)`. 
 
 ### Exiftool
 
@@ -57,11 +56,34 @@ To read the EXIF data from the image files, the package requires a free command 
 Usage
 ---------
 
-To see a list of known cameras (sensors), run
+To see a list of known cameras (sensors), run ```cameras()``` with no arguments. If your camera is not listed, see the help page (```?cameras```) or contact the package author.
 
-	> cameras()
+There are three main functions you'll use to manage your image data:
 
-If your camera is not listed, see the help page for the cameras() function, or contact the package author.
+```uavimg_info()``` returns a 'metadata object' for one or more directories of images. You always start with this.
 
-The general usage is to first create a metadata object for one or more directories of images, using the uavimg_info() function. If needed, you can then split (move) the images into separate folders for each flight using the uavimg_move() function. Once you have the images from each flight saved in their own folder, you can create HTML report(s) of each flight using the uavimg_report() function, or export image centroids and footprints to Shapefiles using uavimg_exp().
+```uavimg_report()```  takes a metadata object and generates a HTML report(s).
 
+```uavimg_exp()```  takes a metadata object and exports the image centroids and footprints as Shapefiles.
+
+For more info about arguments and options for each function, see their help pages.
+
+**Example**
+
+The general usage is to first create a metadata object for one or more directories of images using the *uavimg_info()* function. You can then create HTML report(s) of each flight using *uavimg_report()*, or export image centroids and footprints to Shapefiles using *uavimg_exp()*.
+
+	> mydir <- "c:/Drone_Projects/Hastings/Flt01_1443_1446_250ft"
+	> file.exists(mydir)
+	> x <- uavimg_info(mydir)
+	> summary(x)
+	> uavimg_report(x)
+	> uavimg_exp(x)
+
+*Coming Soon*
+
+ - ```uavimg_move()``` will move images into separate folders for separate flights based on their timestamp
+ - image catalog builder
+
+### Questions, Bug Reports, and Feature Requests
+
+Please start a new issue on GitHub, or contact the package author.
