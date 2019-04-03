@@ -12,7 +12,7 @@
 #' @details
 #' This will read the EXIF header data from a directory of image files, and put out the centroids and image footprints on the ground. Mapping  image locations requires that the images have geostamps. In addition, mapping the image footprints requires that the camera parameters are known, and the flight elevation about ground level is either saved in the EXIF info, or provided in the \code{alt_agl} argument (in meters). If \code{alt_agl} is passed, it will override any elevation data in the EXIF info.
 #'
-#' Camera parameters are saved in a csv file called cameras.csv. To see where this is saved, type \link{system.file("cameras/cameras.csv", package="uavimg")}. If your camera is not detected, please contact the package author or create an issue on \href{https://github.com/UCANR-IGIS/uavimg/issues}{GitHub}. 
+#' Camera parameters are saved in a csv file called cameras.csv. To see where this is saved, type \code{system.file("cameras/cameras.csv", package="uavimg")}. If your camera is not detected, please contact the package author or create an issue on \href{https://github.com/UCANR-IGIS/uavimg/issues}{GitHub}. 
 #'
 #' This function uses a free command line tool called EXIFtool to read the EXIF data, which can be downloaded
 #' from \url{http://www.sno.phy.queensu.ca/~phil/exiftool/}.  After you download it, rename the executable file,
@@ -26,6 +26,9 @@
 
 uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_overlap=TRUE, quiet=FALSE) {
 
+  ## Test for buggy version of R
+  ## if (version$major==3 && version$minor==5.1) stop("Apologies, this version of R has a bug. Please upgrade your R and try again")
+  
   ## See if all directory(s) exist
   for (img_dir in img_dirs) {
     if (!file.exists(img_dir)) stop(paste0("Can't find ", img_dir))
@@ -83,7 +86,8 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
     if (is.na(first_fn)) stop(paste0("Couldn't find any jpg or tif files in ", img_dir))
   
     csv_first_fn <- tempfile(pattern="~map_uav_", fileext = ".csv")
-    system2("exiftool", args=paste("-Make -Model -FileType -n -csv", first_fn, sep=" "), stdout=csv_first_fn)
+    system2("exiftool", args=paste("-Make -Model -FileType -n -csv", first_fn, sep=" "),
+            stdout=csv_first_fn, stderr=FALSE)
     exif_first_df <- read.csv(csv_first_fn, stringsAsFactors = FALSE)
     file.remove(csv_first_fn)
     if (nrow(exif_first_df) == 0) stop("Couldn't find EXIF info in the first image file")
@@ -151,7 +155,7 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
   
     # Run command
     if (!quiet) cat("Running exiftool...")
-    suppressWarnings(system2("exiftool", args=str_args,stdout=csv_fn))
+    suppressWarnings(system2("exiftool", args=str_args, stdout=csv_fn, stderr=FALSE))
     if (!quiet) cat("Done.\n")
     if (!file.exists(csv_fn)) {
       stop("exiftool could not create the csv file")
@@ -298,20 +302,27 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
         }
       }
     }
-    
-    
+
+    ## Create the MCP
     ## Compute area based on the convex hull around all the corners of all the footprints
     chull_idx <- chull(nodes_all_mat)
     chull_idx <- c(chull_idx, chull_idx[1])
     Sr2 = sp::Polygon(nodes_all_mat[chull_idx,])
     area_m2 = Sr2@area
     
+    #print("Just computed MCP"); browser()
     ## Checks (work)
-    ## Srs2 = sp::Polygons(list(Sr2), "mcp")
-    ## fpmcp_sp <- sp::SpatialPolygons(list(Srs2), proj4string=utm_CRS)
-    ## plot(footprints_sp, axes=T, asp=1)
-    ## plot(fpmcp_sp, add=TRUE, border="blue", lwd=2)
     
+    Srs2 = sp::Polygons(list(Sr2), "mcp")
+    #fpmcp_sp <- sp::SpatialPolygons(list(Srs2), proj4string=utm_CRS)
+    #plot(footprints_sp, axes=T, asp=1)
+    #plot(fpmcp_sp, add=TRUE, border="blue", lwd=2)
+    
+    fpmcp_spdf <- sp::SpatialPolygonsDataFrame(
+      Sr=sp::SpatialPolygons(list(Srs2), proj4string=utm_CRS),
+      data=data.frame(img_dir=img_dir, area_m2=area_m2),
+      match.ID = FALSE)
+    #plot(fpmcp_spdf, add=TRUE, border="red", lwd=2)
     
     ## Shorten field names in imgs_ctr_utm
     for (i in 1:length(imgs_ctr_utm@data)) {
@@ -321,7 +332,7 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
       }
     }
 
-    res[[img_dir]] <- list(pts=imgs_ctr_utm,fp=footprints_spdf, area_m2=area_m2)
+    res[[img_dir]] <- list(pts=imgs_ctr_utm,fp=footprints_spdf, area_m2=area_m2, mcp=fpmcp_spdf)
   }
   if (!quiet) cat("All done.\n")
 

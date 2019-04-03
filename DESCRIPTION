@@ -2,8 +2,8 @@ Package: uavimg
 Type: Package
 Title: Drone Image Utilities
 Description: Manages and analyzes image files taken from a drone. Compute centroid, footprints, overlap, and GSD. Create subdirectories for separate flights. Export image locations and footprints to Shapefiles. Produce summary reports.
-Date: 2018-09-14
-Version: 0.9.1
+Date: 2019-04-02
+Version: 1.0.0
 Authors@R: person("Andy", "Lyons", email = "andlyons@ucanr.edu", role = c("aut", "cre"))
 Maintainer: Andy Lyons <andlyons@ucanr.edu>
 BugReports: https://github.com/UCANR-IGIS/uavimg/issues

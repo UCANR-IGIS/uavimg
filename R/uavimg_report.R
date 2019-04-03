@@ -7,11 +7,12 @@
 #' @param output_dir If NULL, then will be placed in a 'map' sub-directory of the images
 #' @param create_dir Create the output directory if it doesn't exist
 #' @param output_file	Name of the HTML file. If NULL a default based on the name of the input directory is chosen.
-#' @param  RMarkdown filename for the report
+#' @param RMarkdown filename for the report
 #' @param open_report Open the HTML file in a browser
 #' @param self_contained Make the output HTML file self-contained
 #' @param png_map Whether to create a PNG version of the map. May be T/F, or dimensions of the output image in pixels (see Details)
 #' @param png_exp A proportion to expand the bounding box of the PNG map, see Details.
+#' @param google_api API key for Google Static Maps, see Details.
 #' @param quiet TRUE to supress printing of the pandoc command line
 #'
 #' @details This will generate HTML report(s) of the images in the UAV metadata object based. 
@@ -26,7 +27,7 @@
 #' The HTML report is generated from a RMarkdown file. If you know RMarkdown, you can modify the default template and pass the filename
 #' of your preferred template using the \code{report_rmd} argument. 
 #'
-#' \code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it. 
+#' \code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it. By default, the background image will be a satellite photo from Google Maps. However this requires a valid API Key for the Google Maps Static service (for details see \url{https://developers.google.com/maps/documentation/maps-static/} as well as \link[ggmap]{register_google}), which you pass with the \code{google_api} argument. If this is not passed, you'll probably get a terrain map from Stamen.
 #'
 #' @return The filename of the HTML report generated
 #'
@@ -34,7 +35,7 @@
 #'
 #' @export
 
-uavimg_report <- function(x, col=NULL, output_dir=NULL, create_dir=TRUE, output_file=NULL, report_rmd=NULL, open_report=TRUE, self_contained=TRUE, png_map=TRUE, png_exp=0.2, quiet=FALSE) {
+uavimg_report <- function(x, col=NULL, output_dir=NULL, create_dir=TRUE, output_file=NULL, report_rmd=NULL, open_report=TRUE, self_contained=TRUE, png_map=FALSE, png_exp=0.2, google_api=NULL, quiet=FALSE) {
 
     if (!inherits(x, "uavimg_info")) stop("x should be of class \"uavimg_info\"")
   
@@ -58,6 +59,7 @@ uavimg_report <- function(x, col=NULL, output_dir=NULL, create_dir=TRUE, output_
     
     if (make_png) {
       if (!requireNamespace("ggmap")) stop("Package ggmap required to make the png map")
+      if (packageVersion("ggmap") < '3.0.0') stop("Please update ggmap package")
     }
     
     report_fn_vec <- NULL
@@ -116,17 +118,14 @@ uavimg_report <- function(x, col=NULL, output_dir=NULL, create_dir=TRUE, output_
       }
             
       ## Render the HTML file
+      cat("going to send report", img_dir, "\n" )
       report_fn <- rmarkdown::render(input=report_rmd_use, output_dir=output_dir_use, output_file=output_file_use, 
                                      output_options=output_options, 
                                      params=c(x[[img_dir]], list(col=col_use, img_dir=img_dir)))
       
-      # cat("report_fn is:", report_fn, "\n")
-      # cat("report_fn_vec is:", report_fn_vec, "\n"); browser()
-      
       report_fn_vec <- c(report_fn_vec, report_fn)
       
       ## If not self-contained, delete the temporary copy of the Rmd file    
-      ## if (!self_contained) file.remove(report_rmd)  
       if (!self_contained) {
          if (is.null(output_dir) || i == length(x)) {
             file.remove(report_rmd_use)  
@@ -135,44 +134,45 @@ uavimg_report <- function(x, col=NULL, output_dir=NULL, create_dir=TRUE, output_
   
       ## Make the PNG map
       if (make_png) {
-        
-        #ext_exp <- 0.1
-        #xlim <- x$pts@bbox[1,] + (diff(x$pts@bbox[1,]) * ext_exp * c(-1,1)) 
-        #ylim <- x$pts@bbox[2,] + (diff(x$pts@bbox[2,]) * ext_exp * c(-1,1)) 
-        #plot(x$pts, xlim=xlim, ylim=ylim, axes=TRUE, asp=1, col=x$col, pch=16)
-        
-        ## Get the extent
-        pts_ext <- with(x[[img_dir]]$pts@data, c(min(gps_long), min(gps_lat), max(gps_long), max(gps_lat)))
-        
-        ## Add a buffer
-        dx <- diff(pts_ext[c(1,3)]) * png_exp
-        dy <- diff(pts_ext[c(2,4)]) * png_exp
-        pts_ext_buff <- pts_ext + c(-dx,-dy,dx,dy)
-        
-        ## Visual check
-        #plot(x=pts_ext_buff[c(1,3,3,1)], y=pts_ext_buff[c(4,4,2,2)], col="red", pch=16)
-        #points(x=pts_ext[c(1,3,3,1)], y=pts_ext[c(4,4,2,2)], col="blue", pch=16)
-        #L B R T
-        #1 2 3 4
-        
+        if (!quiet) cat("Making the PNG map \n")
+
         # Put the colors as a column in the data frame which ggmap requires
         x[[img_dir]]$pts@data$col <- col_use
   
         # Download the basemap image
-        m <- ggmap::get_map(location=pts_ext_buff, maptype = 'satellite')
+        pts_ll_df <- x[[img_dir]]$pts@data[ , c("gps_long", "gps_lat")]
+        ctr_ll <- apply(pts_ll_df,2,mean)
+
+        #range(pts_ll_df[,1]), range(pts_ll_df[,2])
         
-        ## Can't get OSM to work, problem might be i) server load, ii) you need to pass a scale argument 
-        ## See help(OSM_scale_lookup)         
-        ## m <- ggmap::get_map(location=pts_ext_buff, maptype = 'satellite', source='osm')
+        ## Get the extent
+        #pts_ext <- with(x[[img_dir]]$pts@data, c(min(gps_long), min(gps_lat), max(gps_long), max(gps_lat)))
         
-        # Save the map to a variable
+        ## Add a buffer
+        #dx <- diff(pts_ext[c(1,3)]) * png_exp
+        #dy <- diff(pts_ext[c(2,4)]) * png_exp
+        #pts_ext_buff <- pts_ext + c(-dx,-dy,dx,dy)
+        
+        zoom_lev <- ggmap::calc_zoom(lon=range(pts_ll_df[,1]), lat=range(pts_ll_df[,2]), adjust=as.integer(-1))
+        
+        if (is.null(google_api) && !ggmap::has_google_key()) {
+          pts_ext <- with(pts_ll_df, c(min(gps_long), min(gps_lat), max(gps_long), max(gps_lat)))
+          dx <- diff(pts_ext[c(1,3)]) * png_exp
+          dy <- diff(pts_ext[c(2,4)]) * png_exp
+          pts_ext <- pts_ext + c(-dx,-dy,dx,dy)
+          m <- ggmap::get_stamenmap(bbox=pts_ext, zoom=zoom_lev, maptype="terrain")
+        } else {
+          if (!is.null(google_api)) register_google(key=google_api)
+          m <- ggmap::get_googlemap(center=ctr_ll, zoom=zoom_lev, format="png8", maptype="satellite")
+        }
+        
+        # Create the ggmap object and save to a variable
         pts_ggmap <- ggmap(m) + geom_point(aes(gps_long, gps_lat, color=col), data=x[[img_dir]]$pts@data, show.legend=F, size=3) + theme_void()
         
         ## Get the map.png filename
         if (is.null(output_file)) {
           map_fn <- paste0(basename(img_dir), "_map.png")
         } else {
-          ## png_fn_use <- output_file
           map_fn <- paste0(tools::file_path_sans_ext(basename(output_file)), ".png")
         }
 

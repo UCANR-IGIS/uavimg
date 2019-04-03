@@ -54,7 +54,7 @@ To read the EXIF data from the image files, the package requires a free command 
  1. move the executable file to a directory on the path (e.g., c:\windows)
 
 Usage
----------
+--------------
 
 To see a list of known cameras (sensors), run ```cameras()``` with no arguments. If your camera is not listed, see the help page (```?cameras```) or contact the package author.
 
@@ -72,6 +72,7 @@ For more info about arguments and options for each function, see their help page
 
 The general usage is to first create a metadata object for one or more directories of images using the *uavimg_info()* function. You can then create HTML report(s) of each flight using *uavimg_report()*, or export image centroids and footprints to Shapefiles using *uavimg_exp()*.
 
+	> library(uavimg)
 	> mydir <- "c:/Drone_Projects/Hastings/Flt01_1443_1446_250ft"
 	> file.exists(mydir)
 	> x <- uavimg_info(mydir)
@@ -79,11 +80,13 @@ The general usage is to first create a metadata object for one or more directori
 	> uavimg_report(x)
 	> uavimg_exp(x)
 
-*Coming Soon*
-
- - ```uavimg_move()``` will move images into separate folders for separate flights based on their timestamp
- - image catalog builder
-
-### Questions, Bug Reports, and Feature Requests
+Questions, Bug Reports, and Feature Requests
+------------------------------
 
 Please start a new issue on GitHub, or contact the package author.
+
+*Coming Soon*
+
+ - ```uavimg_move()``` will move images into subfolders for separate flights based on their timestamp
+ - image catalog builder
+

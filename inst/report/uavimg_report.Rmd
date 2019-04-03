@@ -11,6 +11,7 @@ params:
   fp: NA
   img_dir: NA
   area_m2: NA
+  mcp: NA
   col: "yellow"
 ---
 
@@ -43,14 +44,12 @@ img_pixels <- paste0(params$pts@data[1, "img_width"], " x ", params$pts@data[1, 
 dt_posix <- as.POSIXct(params$pts@data$date_time, format="%Y:%m:%d %H:%M:%S")
 dt_range <- format(range(dt_posix), "%b %d %Y, %I:%M:%S %p")
 
-##2017:12:10 12:53:28
-
 ```
 
 ## `r basename(params$img_dir)`
 
 <table>
-<tr><td>__Directory__:</td><td>`r params$img_dir`</td></tr>
+<tr><td>__Directory__:</td><td>`r gsub("\\\\","/",params$img_dir)`</td></tr>
 <tr><td>__Num images__:</td><td>`r nrow(params$pts)`</td></tr>
 <tr><td>__Area__:</td><td>`r round(msq2acres(params$area_m2),2)` acres</td></tr>
 <tr><td>__Start__:</td><td>`r dt_range[1]`</td></tr>
@@ -69,9 +68,10 @@ dt_range <- format(range(dt_posix), "%b %d %Y, %I:%M:%S %p")
 m <- leaflet(width="800px", height="600px")
 
 ## Add tiles properties
-tilesURL = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-tilesAttr = "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-m <- m %>% addTiles(tilesURL, attribution=tilesAttr)
+tiles_esri_url = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+tiles_esri_attr = "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+
+m <- m %>% addTiles(tiles_esri_url, group="Satellite", attribution=tiles_esri_attr) %>% addTiles(group="Open Street Map") %>% addLayersControl(baseGroups = c("Satellite", "Open Street Map"), options = layersControlOptions(collapsed = FALSE))
 
 ## Set the bounding box
 lng_rng <- range(params$pts@data$gps_long)

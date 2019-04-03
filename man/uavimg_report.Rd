@@ -6,8 +6,8 @@
 \usage{
 uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
   output_file = NULL, report_rmd = NULL, open_report = TRUE,
-  self_contained = TRUE, png_map = TRUE, png_exp = 0.2,
-  quiet = FALSE)
+  self_contained = TRUE, png_map = FALSE, png_exp = 0.2,
+  google_api = NULL, quiet = FALSE)
 }
 \arguments{
 \item{x}{A list of class 'uavimg_info'}
@@ -27,6 +27,8 @@ uavimg_report(x, col = NULL, output_dir = NULL, create_dir = TRUE,
 \item{png_map}{Whether to create a PNG version of the map. May be T/F, or dimensions of the output image in pixels (see Details)}
 
 \item{png_exp}{A proportion to expand the bounding box of the PNG map, see Details.}
+
+\item{google_api}{API key for Google Static Maps, see Details.}
 
 \item{quiet}{TRUE to supress printing of the pandoc command line}
 
@@ -51,7 +53,7 @@ If saving multiple HTML reports to the same output directory, passing \code{self
 The HTML report is generated from a RMarkdown file. If you know RMarkdown, you can modify the default template and pass the filename
 of your preferred template using the \code{report_rmd} argument. 
 
-\code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it.
+\code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it. By default, the background image will be a satellite photo from Google Maps. However this requires a valid API Key for the Google Maps Static service (for details see \url{https://developers.google.com/maps/documentation/maps-static/} as well as \link[ggmap]{register_google}), which you pass with the \code{google_api} argument. If this is not passed, you'll probably get a terrain map from Stamen.
 }
 \seealso{
 \link{uavimg_info}
