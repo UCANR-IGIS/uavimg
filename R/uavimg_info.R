@@ -7,6 +7,7 @@
 #' @param csv The file name of a new csv file where the exif data will be saved (omit to make a temp one)
 #' @param alt_agl The elevation above ground level in meters (optional for images with the relevative altitude saved)
 #' @param fwd_overlap Whether or not to compute the amount of overlap between one image and the next, T/F
+#' @param cameras Location of the cameras.csv file. Is NULL the package csv file will be used.
 #' @param quiet Don't show messages
 #'
 #' @details
@@ -24,7 +25,7 @@
 #'
 #' @export
 
-uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_overlap=TRUE, quiet=FALSE) {
+uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_overlap=TRUE, cameras=NULL, quiet=FALSE) {
 
   ## Test for buggy version of R
   ## if (version$major==3 && version$minor==5.1) stop("Apologies, this version of R has a bug. Please upgrade your R and try again")
@@ -34,7 +35,11 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
     if (!file.exists(img_dir)) stop(paste0("Can't find ", img_dir))
   }
   
-  cameras_fn <- system.file("cameras/cameras.csv", package="uavimg")
+  if (is.null(cameras)) {
+    cameras_fn <- system.file("cameras/cameras.csv", package="uavimg")  
+  } else {
+    cameras_fn <- cameras
+  }
   if (!file.exists(cameras_fn)) stop(paste0("Can't find cameras.csv file: ", cameras_fn))
 
   ## Create a list that we'll use later to shorten field names
@@ -248,9 +253,11 @@ uavimg_info <- function(img_dirs, exiftool=NULL, csv=NULL, alt_agl=NULL, fwd_ove
           #  -90 = west (rotate 90 degress counter-clockwise)
           # -179, + 179 = south (rotate 180 degrees)
     
-          # 
+    
           # check if the Sequoia Yaw has the same alignment
-          theta = -1 * pi * imgs_ctr_utm@data[i,tolower(camera_tag_yaw)] / 180
+          
+          theta = - pi * imgs_ctr_utm@data[i,tolower(camera_tag_yaw)] / 180
+          
           rot_mat <- matrix(data=c(cos(theta),  -sin(theta), sin(theta), cos(theta)), nrow=2, byrow=TRUE)
           corners_mat <- t(rot_mat %*% t(corners_mat))
     

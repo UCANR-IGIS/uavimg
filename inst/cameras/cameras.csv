@@ -12,3 +12,4 @@ DJI,FC6310,JPEG,DJI Phantom 4 Pro,13.2,8.8,CMOS,global,5472,3648,8.8,CameraYaw,R
 DJI,xxxxxx,JPEG,DJI Phantom 4,6.3,4.7,CMOS,unknown,4000,3000,20,CameraYaw,RelativeAltitude,https://www.dxomark.com/Cameras/DJI/Phantom-4 ; https://www.dji.com/phantom-4/info,1/2.3 CMOS
 DJI,FC220,JPEG,DJI Mavic Pro,6.32692,4.74519,CMOS,unknown,4000,3000,4.861305,CameraYaw,RelativeAltitude,Pix4D Camera Database v19,1/2.3 CMOS
 DJI,xxxxxx,JPEG,DJI Mavic 2 Pro,13.2,8.8,CMOS,unknown,10,10,99,,,https://forum.dji.com/thread-167017-1-1.html,
+DJI,FC300X,JPEG,DJI Phantom 3 Pro,6.31748,4.73811,CMOS,rolling,4000,3000,3.61,CameraYaw,RelativeAltitude,Pix4D Camera Database v19,1/2.3 sensor

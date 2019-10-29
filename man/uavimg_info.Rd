@@ -5,7 +5,7 @@
 \title{Extract info from UAV Images}
 \usage{
 uavimg_info(img_dirs, exiftool = NULL, csv = NULL, alt_agl = NULL,
-  fwd_overlap = TRUE, quiet = FALSE)
+  fwd_overlap = TRUE, cameras = NULL, quiet = FALSE)
 }
 \arguments{
 \item{img_dirs}{Directory(s) where the image files reside}
@@ -17,6 +17,8 @@ uavimg_info(img_dirs, exiftool = NULL, csv = NULL, alt_agl = NULL,
 \item{alt_agl}{The elevation above ground level in meters (optional for images with the relevative altitude saved)}
 
 \item{fwd_overlap}{Whether or not to compute the amount of overlap between one image and the next, T/F}
+
+\item{cameras}{Location of the cameras.csv file. Is NULL the package csv file will be used.}
 
 \item{quiet}{Don't show messages}
 }

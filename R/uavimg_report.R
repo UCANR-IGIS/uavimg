@@ -7,7 +7,7 @@
 #' @param output_dir If NULL, then will be placed in a 'map' sub-directory of the images
 #' @param create_dir Create the output directory if it doesn't exist
 #' @param output_file	Name of the HTML file. If NULL a default based on the name of the input directory is chosen.
-#' @param RMarkdown filename for the report
+#' @param report_rmd Rmd template used to generate the HTML file. See details.
 #' @param open_report Open the HTML file in a browser
 #' @param self_contained Make the output HTML file self-contained
 #' @param png_map Whether to create a PNG version of the map. May be T/F, or dimensions of the output image in pixels (see Details)
@@ -24,7 +24,7 @@
 #' embedded in the HTML file itself, or saved in a subdirectory called 'libs'. If saving several reports to one output directory,
 #' If saving multiple HTML reports to the same output directory, passing \code{self_contained = FALSE} is more efficient   
 #'
-#' The HTML report is generated from a RMarkdown file. If you know RMarkdown, you can modify the default template and pass the filename
+#' The HTML report is generated from a RMarkdown file. If you know how to edit RMarkdown, you can modify the default template and pass the filename
 #' of your preferred template using the \code{report_rmd} argument. 
 #'
 #' \code{png_map} controls whether a PNG version of the map will be created in \code{output_dir}. If TRUE, a PNG file at the default dimensions (480x480) will be created. If a single integer is passed, it will be taken to be the width and height on the PNG file in pixels. \code{png_exp} is a percentage of the points bounding box that will be used as a buffer for the background map. If the map seems too cropped, or you get a warning message about rows removed, try increasing it. By default, the background image will be a satellite photo from Google Maps. However this requires a valid API Key for the Google Maps Static service (for details see \url{https://developers.google.com/maps/documentation/maps-static/} as well as \link[ggmap]{register_google}), which you pass with the \code{google_api} argument. If this is not passed, you'll probably get a terrain map from Stamen.

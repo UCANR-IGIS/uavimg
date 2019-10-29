@@ -4,7 +4,7 @@
 \alias{summary.uavimg_info}
 \title{Show a summary of a drone images metadata collection object}
 \usage{
-\method{summary}{uavimg_info}(object, ...)
+\method{summary}{uavimg_info}(object)
 }
 \arguments{
 \item{object}{A drone images metadata object}

@@ -10,7 +10,7 @@
 #'
 #' @export
 
-summary.uavimg_info <- function(object, ...) {
+summary.uavimg_info <- function(object) {
 
     if (!inherits(object, "uavimg_info")) stop("x should be of class \"uavimg_info\"")
   

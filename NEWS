@@ -1,3 +1,9 @@
+Changes in version 1.1.0 (2019-10-29) 
+=========================
+* Added <pre>uavimg_worldfile</pre> to generate sidecar files for images
+* Added cameras argument to <pre>uavimg_info</pre>
+* Updated cameras.csv - added Phantom 3 Pro (FC300X)
+
 Changes in version 1.0.0 (2019-04-02) 
 =========================
 * Modified <pre>uavimg_info</pre> to save the MCP
