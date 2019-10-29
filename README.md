@@ -71,7 +71,8 @@ ground was actually greater than the recorded flight height.
 
 ## Installation
 
-Using the ‘devtools’ package:
+This package is not yet on CRAN, so install using the ‘devtools’
+package:
 
 ``` r
 install.packages("devtools")
@@ -104,8 +105,9 @@ steps:
 2.  uncompress / unzip
 3.  rename the executable file from *exiftool(-k).exe* to
     *exiftool.exe*.
-4.  move the executable file to a directory on the path (e.g., c:)
-    (note: putting it in c:32 does not seem to work)
+4.  move the executable file to a directory on the path (e.g.,
+    c:\\windows). Note: putting it in c:\\windows\\system32 does *not*
+    seem to work.
 
 ## Usage
 
@@ -150,7 +152,7 @@ uavimg_report(uav_img_metadata)
 uavimg_exp(uav_img_metadata)
 
 ## Generate estimated world files so the images can be imported into ArcGIS or QGIS
- uavimg_worldfile(uav_img_metadata)
+uavimg_worldfile(uav_img_metadata)
 ```
 
 ## HTML Catalog
