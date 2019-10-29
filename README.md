@@ -32,7 +32,7 @@ so images can be viewed in GIS software.
 
 **Note**: image locations and footprints are based on the metadata saved
 in the image files (e.g., height above the launch point, compass
-direction of the camera). Thus they should considered as *esimates
+direction of the camera). Thus they should considered as *estimates
 only*.
 
 ##### Data Requirements
